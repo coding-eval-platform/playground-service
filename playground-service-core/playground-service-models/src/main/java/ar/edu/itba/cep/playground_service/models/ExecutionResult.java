@@ -11,7 +11,7 @@ import org.springframework.util.Assert;
         of = "id"
 )
 @Getter
-public class ExecutionResult {
+public abstract class ExecutionResult {
 
     /**
      * The execution result's id.
