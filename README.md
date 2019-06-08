@@ -174,7 +174,7 @@ Check [this resource](https://github.com/gcuisinier/jenv#plugins) for more infor
 2. Build the project:
 
 	```
-	$ mvn clean pacakge
+	$ mvn clean package
 	```
 
 	**Note:** In case you change the ```<project-root>/playground-service-application/src/main/resources/application.yml```, you must build again the project. Otherwise, if you want to change a property on the fly, use command line properties.
