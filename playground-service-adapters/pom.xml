@@ -21,5 +21,6 @@
     <modules>
         <module>playground-service-rest-adapter</module>
         <module>playground-service-spring-data-adapter</module>
+        <module>playground-service-kafka-commands-senders</module>
     </modules>
 </project>

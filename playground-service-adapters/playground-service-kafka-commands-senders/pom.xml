@@ -6,21 +6,23 @@
 
     <parent>
         <groupId>ar.edu.itba.cep</groupId>
-        <artifactId>playground-service-core</artifactId>
+        <artifactId>playground-service-adapters</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>playground-service-ports</artifactId>
+    <artifactId>playground-service-kafka-commands-senders</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <modules>
-        <module>playground-service-services</module>
-        <module>playground-service-repositories</module>
-        <module>playground-service-command-messages-senders</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>playground-service-command-messages-senders</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+    </dependencies>
 </project>

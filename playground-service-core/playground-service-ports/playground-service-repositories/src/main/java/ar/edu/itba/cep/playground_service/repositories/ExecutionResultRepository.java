@@ -12,6 +12,15 @@ import java.util.Optional;
 public interface ExecutionResultRepository extends BasicRepository<ExecutionResult, Long> {
 
     /**
+     * Indicates whether an {@link ExecutionResult} exists for the given {@link ExecutionRequest}.
+     *
+     * @param executionRequest The {@link ExecutionRequest} to be checked.
+     * @return {@code true} if an {@link ExecutionResult} already exists for the given {@code executionRequest},
+     * or {@code false} otherwise.
+     */
+    boolean existsFor(final ExecutionRequest executionRequest);
+
+    /**
      * Retrieves the {@link ExecutionResult} corresponding to the given {@code executionRequest}.
      *
      * @param executionRequest The {@link ExecutionRequest} owning the returned {@link ExecutionResult}.

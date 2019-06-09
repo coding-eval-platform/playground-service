@@ -55,6 +55,11 @@ public class MockedExecutionResultRepository implements ExecutionResultRepositor
     }
 
     @Override
+    public boolean existsFor(final ExecutionRequest executionRequest) {
+        throw new NotImplementedException("Not implemented yet!");
+    }
+
+    @Override
     public Optional<ExecutionResult> getResultFor(final ExecutionRequest executionRequest) {
         throw new NotImplementedException("Not implemented yet!");
     }
