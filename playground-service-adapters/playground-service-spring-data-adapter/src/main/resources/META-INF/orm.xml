@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+        xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_2.xsd"
+        version="2.2">
+
+    <package>ar.edu.itba.cep.playground_service.models</package>
+
+    <entity class="ExecutionRequest" access="FIELD">
+        <table name="exams"/>
+        <attributes>
+            <id name="id">
+                <column name="id" nullable="false" updatable="false"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="code">
+                <column name="code" nullable="false" insertable="true" updatable="false"/>
+            </basic>
+            <basic name="timeout">
+                <column name="timeout" nullable="false" insertable="true" updatable="false"/>
+            </basic>
+            <basic name="language">
+                <column name="language" nullable="false" insertable="true" updatable="true"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <element-collection name="inputs" fetch="LAZY">
+                <order-column name="input_order" nullable="false" insertable="true" updatable="false"/>
+                <column name="input" nullable="false" insertable="true" updatable="false"/>
+                <collection-table name="execution_requests_inputs">
+                    <join-column name="request_id"/>
+                </collection-table>
+            </element-collection>
+        </attributes>
+    </entity>
+
+    <entity class="ExecutionResult" access="FIELD">
+        <table name="exercises"/>
+        <inheritance strategy="JOINED"/>
+        <attributes>
+            <id name="id">
+                <column name="id" nullable="false" updatable="false"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <one-to-one name="executionRequest" fetch="LAZY" optional="false">
+                <join-column name="request_id"
+                             referenced-column-name="id" nullable="false" insertable="true" updatable="false"/>
+            </one-to-one>
+        </attributes>
+    </entity>
+
+    <entity class="TimedOutExecutionResult" access="FIELD">
+        <table name="timed_out_execution_result"/>
+    </entity>
+
+    <entity class="FinishedExecutionResult" access="FIELD">
+        <table name="exercise_solutions"/>
+        <attributes>
+            <basic name="exitCode">
+                <column name="exit_code" nullable="false" insertable="true" updatable="false"/>
+            </basic>
+            <element-collection name="stdout" fetch="LAZY">
+                <order-column name="output_order" nullable="false" insertable="true" updatable="false"/>
+                <column name="output" nullable="false" insertable="true" updatable="false"/>
+                <collection-table name="finished_execution_results_outputs">
+                    <join-column name="result_id"/>
+                </collection-table>
+            </element-collection>
+            <element-collection name="stderr" fetch="LAZY">
+                <order-column name="error_output_order" nullable="false" insertable="true" updatable="false"/>
+                <column name="error_output" nullable="false" insertable="true" updatable="false"/>
+                <collection-table name="finished_execution_results_error_outputs">
+                    <join-column name="result_id"/>
+                </collection-table>
+            </element-collection>
+        </attributes>
+    </entity>
+</entity-mappings>
