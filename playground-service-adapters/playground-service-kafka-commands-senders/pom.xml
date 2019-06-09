@@ -10,7 +10,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>playground-service-spring-data-adapter</artifactId>
+    <artifactId>playground-service-kafka-commands-senders</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
     <packaging>jar</packaging>
 
@@ -21,19 +21,8 @@
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>playground-service-repositories</artifactId>
+            <artifactId>playground-service-command-messages-senders</artifactId>
             <version>${project.parent.version}</version>
-        </dependency>
-
-        <!-- Third party libraries-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.bellotapps.webapps</groupId>
-            <artifactId>webapps-commons-exceptions</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -6,11 +6,11 @@
 
     <parent>
         <groupId>ar.edu.itba.cep</groupId>
-        <artifactId>playground-service-adapters</artifactId>
+        <artifactId>playground-service-ports</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>playground-service-spring-data-adapter</artifactId>
+    <artifactId>playground-service-command-messages-senders</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
     <packaging>jar</packaging>
 
@@ -19,16 +19,11 @@
     </properties>
 
     <dependencies>
+        <!-- Models -->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>playground-service-repositories</artifactId>
+            <artifactId>playground-service-models</artifactId>
             <version>${project.parent.version}</version>
-        </dependency>
-
-        <!-- Third party libraries-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>

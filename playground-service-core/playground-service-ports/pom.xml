@@ -21,5 +21,6 @@
     <modules>
         <module>playground-service-services</module>
         <module>playground-service-repositories</module>
+        <module>playground-service-command-messages-senders</module>
     </modules>
 </project>
