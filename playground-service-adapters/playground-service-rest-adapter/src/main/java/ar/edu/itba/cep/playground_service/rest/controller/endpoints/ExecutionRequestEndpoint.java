@@ -2,7 +2,6 @@ package ar.edu.itba.cep.playground_service.rest.controller.endpoints;
 
 import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
 import ar.edu.itba.cep.playground_service.models.ExecutionResult;
-import ar.edu.itba.cep.playground_service.models.User;
 import ar.edu.itba.cep.playground_service.rest.controller.dtos.ExecutionRequestUploadDto;
 import ar.edu.itba.cep.playground_service.rest.controller.dtos.ExecutionResultDto;
 import ar.edu.itba.cep.playground_service.rest.controller.dtos.PendingExecutionResultDto;
@@ -20,7 +19,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
- * API endpoint for {@link User} management.
+ * Rest Adapter of {@link PlaygroundService},
+ * encapsulating {@link ExecutionRequest} and {@link ExecutionResult} management.
  */
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
