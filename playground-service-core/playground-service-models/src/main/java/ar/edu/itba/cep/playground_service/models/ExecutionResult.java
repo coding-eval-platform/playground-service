@@ -2,11 +2,15 @@ package ar.edu.itba.cep.playground_service.models;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.util.Assert;
 
 /**
  * Represents an execution result.
  */
+@ToString(
+        doNotUseGetters = true
+)
 @EqualsAndHashCode(
         of = "id"
 )

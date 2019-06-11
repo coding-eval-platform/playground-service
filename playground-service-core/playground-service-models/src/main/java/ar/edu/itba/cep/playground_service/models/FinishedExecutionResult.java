@@ -12,7 +12,8 @@ import java.util.Objects;
  * An {@link ExecutionResult} that corresponds to a finished execution (i.e has exit code, stdout and stderr).
  */
 @ToString(
-        callSuper = true
+        callSuper = true,
+        doNotUseGetters = true
 )
 @Getter
 public final class FinishedExecutionResult extends ExecutionResult {

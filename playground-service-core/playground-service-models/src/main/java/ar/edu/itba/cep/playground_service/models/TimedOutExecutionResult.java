@@ -6,7 +6,8 @@ import lombok.ToString;
  * An {@link ExecutionResult} that corresponds to a timed-out execution.
  */
 @ToString(
-        callSuper = true
+        callSuper = true,
+        doNotUseGetters = true
 )
 public final class TimedOutExecutionResult extends ExecutionResult {
 
