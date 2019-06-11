@@ -8,7 +8,7 @@
     <package>ar.edu.itba.cep.playground_service.models</package>
 
     <entity class="ExecutionRequest" access="FIELD">
-        <table name="exams"/>
+        <table name="execution_requests"/>
         <attributes>
             <id name="id">
                 <column name="id" nullable="false" updatable="false"/>
@@ -35,7 +35,7 @@
     </entity>
 
     <entity class="ExecutionResult" access="FIELD">
-        <table name="exercises"/>
+        <table name="execution_results"/>
         <inheritance strategy="JOINED"/>
         <attributes>
             <id name="id">
@@ -51,22 +51,24 @@
 
     <entity class="TimedOutExecutionResult" access="FIELD">
         <table name="timed_out_execution_result"/>
+        <primary-key-join-column name="result_id"/>
     </entity>
 
     <entity class="FinishedExecutionResult" access="FIELD">
-        <table name="exercise_solutions"/>
+        <table name="finished_execution_results"/>
+        <primary-key-join-column name="result_id"/>
         <attributes>
             <basic name="exitCode">
                 <column name="exit_code" nullable="false" insertable="true" updatable="false"/>
             </basic>
-            <element-collection name="stdout" fetch="LAZY">
+            <element-collection name="stdout" fetch="EAGER">
                 <order-column name="output_order" nullable="false" insertable="true" updatable="false"/>
                 <column name="output" nullable="false" insertable="true" updatable="false"/>
                 <collection-table name="finished_execution_results_outputs">
                     <join-column name="result_id"/>
                 </collection-table>
             </element-collection>
-            <element-collection name="stderr" fetch="LAZY">
+            <element-collection name="stderr" fetch="EAGER">
                 <order-column name="error_output_order" nullable="false" insertable="true" updatable="false"/>
                 <column name="error_output" nullable="false" insertable="true" updatable="false"/>
                 <collection-table name="finished_execution_results_error_outputs">
