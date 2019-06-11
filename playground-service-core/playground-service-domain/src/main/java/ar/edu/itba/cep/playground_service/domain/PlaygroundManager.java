@@ -9,6 +9,7 @@ import ar.edu.itba.cep.playground_service.services.PlaygroundService;
 import com.bellotapps.webapps_commons.exceptions.NoSuchEntityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import java.util.function.Function;
  * Manager of {@link ExecutionRequest}s and {@link ExecutionResult}s.
  */
 @Service
+@Transactional(readOnly = true)
 public class PlaygroundManager implements PlaygroundService, ExecutionResultProcessor {
 
     /**
@@ -53,6 +55,7 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResultProc
 
 
     @Override
+    @Transactional
     public ExecutionRequest requestExecution(
             final String code,
             final List<String> inputs,
@@ -77,11 +80,13 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResultProc
     }
 
     @Override
+    @Transactional
     public void receiveTimedOut(final long executionRequestId) {
         storeResultFor(executionRequestId, TimedOutExecutionResult::new);
     }
 
     @Override
+    @Transactional
     public void receiveFinished(
             final int exitCode,
             final List<String> stdout,
