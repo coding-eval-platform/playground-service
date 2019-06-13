@@ -159,6 +159,33 @@ Restart your shell session in order to have the plugin running.
 
 Check [this resource](https://github.com/gcuisinier/jenv#plugins) for more information about jEnv plugins.
 
+#### Database
+
+The project requires a PostgreSQL database.
+
+##### Create a local database (Optional)
+
+1. Install PostgreSQL
+
+```
+$ brew install postgresql
+```
+
+2. Create a user and a database for the application. You can check the [create user](https://www.postgresql.org/docs/9.6/static/sql-createuser.html) and [create database](https://www.postgresql.org/docs/9.6/static/sql-createdatabase.html) documentations to learn how to perform this step.
+
+
+##### Set up project to use the database
+
+Set the following properties with the appropiate values:
+
+- ```spring.datasource.url```
+- ```spring.datasource.username```
+- ```spring.datasource.password```
+
+You can do this by changing the ```<project-root>/playground-service-application/src/main/resources/application.yml``` file, in the development section, or by defining the properties through the command line (with ```-Dkey=value``` properties, or with ```--key=value``` properties) when running the application.
+
+**Note:** These properties can be filled with the values of a local database, or with the values of a remote database.
+
 
 ### Build
 
@@ -179,7 +206,7 @@ Check [this resource](https://github.com/gcuisinier/jenv#plugins) for more infor
 
 	**Note:** In case you change the ```<project-root>/playground-service-application/src/main/resources/application.yml```, you must build again the project. Otherwise, if you want to change a property on the fly, use command line properties.
 
-
+playground
 ### Run
 
 You can run the application using the following command:
@@ -194,11 +221,37 @@ The following is a full example of how to run the application:
 ```
 export PLAYGROUND_SERVICE_VERSION=<project-version>
 java \
+	-Dspring.datasource.url=jdbc:postgresql://localhost:5432/coding-eval-platform__playground-service \
+	-Dspring.datasource.username=coding-eval-platform__playground-service \
+	-Dspring.datasource.password=coding-eval-platform__playground-service \
 	-jar <project-root>/playground-service-application/target/playground-service-application-$PLAYGROUND_SERVICE_VERSION.jar \
 	--spring.profiles.active=dev
 ```
 
 **Note:** In case of using a new database, this will create all tables.
+
+
+### Other stuff
+
+
+1. **(Optional)** Install Flyway CLI. Check the [documentation](https://flywaydb.org/documentation/commandline/) in order to learn how to do it.
+
+	Flyway is a tool for performing database migrations easier (i.e changing schema, adding system data, etc.). Check their [website](https://flywaydb.org/) for more information.
+
+2. **(Optional)** Create a Flyway configuration file. This file must contain the following properties:
+
+	```
+	# Flyway CLI configuration
+
+	flyway.url=<database-url>
+	flyway.user=<database-username>
+	flyway.password=<database-user-password>
+	```
+
+	This configution file will let you use Flyway easier. It won't ask for credentials each time you want to use it.
+
+	**Note:** The ```.gitignore``` file declares the ```flyway.conf``` file, so this information should not leak into GitHub.
+
 
 
 ## Use with Docker
@@ -227,6 +280,9 @@ $ docker run -p 8000:8000 itbacep/playground-service:latest
 ```
 
 Note that you have to use the same tag you used to create the image.
+
+Note that you will have to link the container with another container (or the host machine)
+in which a PostgreSQL server is running.
 
 
 ## CI/CD Workflow
