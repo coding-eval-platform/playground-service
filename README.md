@@ -186,6 +186,43 @@ You can do this by changing the ```<project-root>/playground-service-application
 
 **Note:** These properties can be filled with the values of a local database, or with the values of a remote database.
 
+#### Kafka
+
+The project requires a [Kafka](https://kafka.apache.org/) cluster to start and to process requests. Kafka requires [Zookeeper](https://zookeeper.apache.org/).
+
+
+##### Create a local cluster
+
+1. Instal Zookeeper
+
+```
+$ brew install zookeeper
+```
+
+2. Install Kafka.
+
+```
+$ brew install kafka
+```
+
+That's it.
+
+##### Setup project to use the cluster
+
+Set the following property:
+
+- ```spring.kafka.bootstrap-servers```
+
+You can do this by changing the `<project-root>/playground-service-application/src/main/resources/application.yml` file, in the development section, or by defining the properties through the command line (with `-Dkey=value` properties, or with `--key=value` properties) when running the application.
+
+The property must be set with the Kafka brokers address and port. You can set several of them. THe format is the following: ```host:port```. Check the following example:
+
+```
+spring.kafka.bootstrap-servers:localhost:9092
+```
+
+Note: These properties can be filled with the values of a local cluster, or with the values of a remote cluster.
+
 
 ### Build
 
@@ -224,6 +261,7 @@ java \
 	-Dspring.datasource.url=jdbc:postgresql://localhost:5432/coding-eval-platform__playground-service \
 	-Dspring.datasource.username=coding-eval-platform__playground-service \
 	-Dspring.datasource.password=coding-eval-platform__playground-service \
+	-Dspring.kafka.bootstrap-servers=localhost:9092 \
 	-jar <project-root>/playground-service-application/target/playground-service-application-$PLAYGROUND_SERVICE_VERSION.jar \
 	--spring.profiles.active=dev
 ```
@@ -282,7 +320,7 @@ $ docker run -p 8000:8000 itbacep/playground-service:latest
 Note that you have to use the same tag you used to create the image.
 
 Note that you will have to link the container with another container (or the host machine)
-in which a PostgreSQL server is running.
+in which a PostgreSQL server and a Kafka cluster is running.
 
 
 ## CI/CD Workflow
