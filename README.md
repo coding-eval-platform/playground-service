@@ -320,7 +320,7 @@ $ docker run -p 8000:8000 itbacep/playground-service:latest
 Note that you have to use the same tag you used to create the image.
 
 Note that you will have to link the container with another container (or the host machine)
-in which a PostgreSQL server and a Kafka cluster is running.
+in which both a PostgreSQL server, and a Kafka cluster, are running.
 
 
 ## CI/CD Workflow
