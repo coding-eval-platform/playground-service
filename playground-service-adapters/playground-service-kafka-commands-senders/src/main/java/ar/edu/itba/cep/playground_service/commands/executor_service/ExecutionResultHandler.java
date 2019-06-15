@@ -62,6 +62,7 @@ public class ExecutionResultHandler extends DeserializerMessageHandler<Execution
     private void processResultType(final long requestId, final ExecutionResultDto executionResultDto) {
         if (executionResultDto instanceof TimedOutExecutionResultDto) {
             executionResultProcessor.receiveTimedOut(requestId);
+            return;
         }
         if (executionResultDto instanceof FinishedExecutionResultDto) {
             final var finishedExecutionResultDto = (FinishedExecutionResultDto) executionResultDto;
@@ -71,6 +72,7 @@ public class ExecutionResultHandler extends DeserializerMessageHandler<Execution
                     finishedExecutionResultDto.getStderr(),
                     requestId
             );
+            return;
         }
         throw new IllegalArgumentException("Unknown subtype");
     }
