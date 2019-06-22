@@ -1,6 +1,9 @@
 package ar.edu.itba.cep.playground_service.commands.executor_service.dto;
 
 
+import ar.edu.itba.cep.playground_service.models.CompileErrorExecutionResult;
+import ar.edu.itba.cep.playground_service.models.InitializationErrorExecutionResult;
+import ar.edu.itba.cep.playground_service.models.UnknownErrorExecutionResult;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -17,7 +20,19 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(
                 value = TimedOutExecutionResultDto.class,
                 name = ExecutionResultDto.TIMED_OUT_STRING_VALUE
-        )
+        ),
+        @JsonSubTypes.Type(
+                value = CompileErrorExecutionResultDto.class,
+                name = ExecutionResultDto.COMPILED_ERROR_STRING_VALUE
+        ),
+        @JsonSubTypes.Type(
+                value = InitializationErrorExecutionResultDto.class,
+                name = ExecutionResultDto.INITIALIZATION_ERROR_STRING_VALUE
+        ),
+        @JsonSubTypes.Type(
+                value = UnknownErrorExecutionResultDto.class,
+                name = ExecutionResultDto.UNKNOWN_ERROR_STRING_VALUE
+        ),
 })
 public interface ExecutionResultDto {
 
@@ -29,4 +44,16 @@ public interface ExecutionResultDto {
      * Value that marks a JSON to be deserialized into a {@link TimedOutExecutionResultDto}.
      */
     /* package */ String TIMED_OUT_STRING_VALUE = "TIMED_OUT";
+    /**
+     * Value that marks a JSON to be deserialized into a {@link CompileErrorExecutionResult}.
+     */
+    /* package */ String COMPILED_ERROR_STRING_VALUE = "COMPILE_ERROR";
+    /**
+     * Value that marks a JSON to be deserialized into a {@link InitializationErrorExecutionResult}.
+     */
+    /* package */ String INITIALIZATION_ERROR_STRING_VALUE = "INITIALIZATION_ERROR";
+    /**
+     * Value that marks a JSON to be deserialized into a {@link UnknownErrorExecutionResult}.
+     */
+    /* package */ String UNKNOWN_ERROR_STRING_VALUE = "UNKNOWN_ERROR";
 }
