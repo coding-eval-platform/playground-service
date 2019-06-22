@@ -1,9 +1,6 @@
 package ar.edu.itba.cep.playground_service.commands.executor_service.dto;
 
 
-import ar.edu.itba.cep.playground_service.models.CompileErrorExecutionResult;
-import ar.edu.itba.cep.playground_service.models.InitializationErrorExecutionResult;
-import ar.edu.itba.cep.playground_service.models.UnknownErrorExecutionResult;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -45,15 +42,15 @@ public interface ExecutionResultDto {
      */
     /* package */ String TIMED_OUT_STRING_VALUE = "TIMED_OUT";
     /**
-     * Value that marks a JSON to be deserialized into a {@link CompileErrorExecutionResult}.
+     * Value that marks a JSON to be deserialized into a {@link CompileErrorExecutionResultDto}.
      */
     /* package */ String COMPILED_ERROR_STRING_VALUE = "COMPILE_ERROR";
     /**
-     * Value that marks a JSON to be deserialized into a {@link InitializationErrorExecutionResult}.
+     * Value that marks a JSON to be deserialized into a {@link InitializationErrorExecutionResultDto}.
      */
     /* package */ String INITIALIZATION_ERROR_STRING_VALUE = "INITIALIZATION_ERROR";
     /**
-     * Value that marks a JSON to be deserialized into a {@link UnknownErrorExecutionResult}.
+     * Value that marks a JSON to be deserialized into a {@link UnknownErrorExecutionResultDto}.
      */
     /* package */ String UNKNOWN_ERROR_STRING_VALUE = "UNKNOWN_ERROR";
 }

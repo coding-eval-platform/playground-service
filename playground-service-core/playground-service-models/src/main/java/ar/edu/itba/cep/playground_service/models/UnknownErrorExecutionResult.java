@@ -3,7 +3,7 @@ package ar.edu.itba.cep.playground_service.models;
 import lombok.ToString;
 
 /**
- * Represents an {@link ExecutionResult} that has timed-out.
+ * Represents an {@link ExecutionResult} for an execution that failed unexpectedly.
  */
 @ToString(doNotUseGetters = true, callSuper = true)
 public class UnknownErrorExecutionResult extends ExecutionResult {
