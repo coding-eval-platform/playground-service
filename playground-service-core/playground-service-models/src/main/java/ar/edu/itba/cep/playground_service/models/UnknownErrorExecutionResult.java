@@ -8,6 +8,11 @@ import lombok.ToString;
 @ToString(doNotUseGetters = true, callSuper = true)
 public class UnknownErrorExecutionResult extends ExecutionResult {
 
+    /**
+     * Default constructor.
+     */
+    public UnknownErrorExecutionResult() {
+    }
 
     /**
      * Constructor.

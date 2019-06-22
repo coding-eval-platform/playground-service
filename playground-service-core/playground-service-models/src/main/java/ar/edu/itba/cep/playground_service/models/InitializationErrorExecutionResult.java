@@ -8,6 +8,11 @@ import lombok.ToString;
 @ToString(doNotUseGetters = true, callSuper = true)
 public class InitializationErrorExecutionResult extends ExecutionResult {
 
+    /**
+     * Default constructor.
+     */
+    public InitializationErrorExecutionResult() {
+    }
 
     /**
      * Constructor.

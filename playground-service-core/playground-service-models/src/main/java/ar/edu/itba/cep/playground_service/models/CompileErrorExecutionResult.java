@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.springframework.util.Assert;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,6 +21,13 @@ public class CompileErrorExecutionResult extends ExecutionResult {
      */
     private final List<String> compilerErrors;
 
+
+    /**
+     * Default constructor.
+     */
+    public CompileErrorExecutionResult() {
+        this.compilerErrors = new LinkedList<>();
+    }
 
     /**
      * Constructor.
