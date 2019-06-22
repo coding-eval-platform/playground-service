@@ -26,7 +26,7 @@ public class CompileErrorExecutionResultDto implements ExecutionResultDto {
      */
     @JsonCreator
     public CompileErrorExecutionResultDto(
-            @JsonProperty(value = "stdout", access = JsonProperty.Access.WRITE_ONLY) final List<String> compilerErrors)
+            @JsonProperty(value = "compilerErrors", access = JsonProperty.Access.WRITE_ONLY) final List<String> compilerErrors)
             throws IllegalArgumentException {
         this.compilerErrors = compilerErrors;
     }
