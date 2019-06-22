@@ -1,10 +1,7 @@
 package ar.edu.itba.cep.playground_service.domain;
 
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
-import ar.edu.itba.cep.playground_service.models.ExecutionResult;
-import ar.edu.itba.cep.playground_service.models.FinishedExecutionResult;
-import ar.edu.itba.cep.playground_service.models.TimedOutExecutionResult;
+import ar.edu.itba.cep.playground_service.models.*;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
 import org.hamcrest.Matcher;
@@ -119,6 +116,24 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
     }
 
     /**
+     * Tests the creation of a {@link FinishedExecutionResult}.
+     *
+     * @param mockedRequest A mocker {@link ExecutionRequest}
+     *                      (the one owning the created {@link FinishedExecutionResult})
+     */
+    @Test
+    void testFinishedResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
+        final var exitCode = TestHelper.validExitCode();
+        final var stdout = TestHelper.validInputOutputList();
+        final var stderr = TestHelper.validInputOutputList();
+        abstractTestCreationOfResult(
+                (manager, id) -> manager.receiveFinished(exitCode, stdout, stderr, id),
+                mockedRequest,
+                req -> finishedResultMatcher(exitCode, stdout, stderr, req)
+        );
+    }
+
+    /**
      * Tests the creation of a {@link TimedOutExecutionResult}.
      *
      * @param mockedRequest A mocker {@link ExecutionRequest}
@@ -134,20 +149,49 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
     }
 
     /**
-     * Tests the creation of a {@link FinishedExecutionResult}.
+     * Tests the creation of a {@link CompileErrorExecutionResult}.
      *
      * @param mockedRequest A mocker {@link ExecutionRequest}
-     *                      (the one owning the created {@link FinishedExecutionResult})
+     *                      (the one owning the created {@link CompileErrorExecutionResult})
      */
     @Test
-    void testFinishedResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
-        final var exitCode = TestHelper.validExitCode();
-        final var stdout = TestHelper.validInputOutputList();
-        final var stderr = TestHelper.validInputOutputList();
+    void testCompileErrorResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
+        Mockito.when(mockedRequest.getLanguage()).thenReturn(TestHelper.compiledLanguage());
+        final var compilerErrors = TestHelper.validInputOutputList();
         abstractTestCreationOfResult(
-                (manager, id) -> manager.receiveFinished(exitCode, stdout, stderr, id),
+                (manager, id) -> manager.receiveCompileError(compilerErrors, id),
                 mockedRequest,
-                req -> finishedResultMatcher(exitCode, stdout, stderr, req)
+                req -> compileErrorResultMatcher(compilerErrors, req)
+        );
+    }
+
+    /**
+     * Tests the creation of an {@link InitializationErrorExecutionResult}.
+     *
+     * @param mockedRequest A mocker {@link ExecutionRequest}
+     *                      (the one owning the created {@link InitializationErrorExecutionResult})
+     */
+    @Test
+    void testInitializationErrorResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
+        abstractTestCreationOfResult(
+                PlaygroundManager::receiveInitializationError,
+                mockedRequest,
+                PlaygroundManagerHappyPathsTest::initializationErrorResultMatcher
+        );
+    }
+
+    /**
+     * Tests the creation of an {@link UnknownErrorExecutionResult}.
+     *
+     * @param mockedRequest A mocker {@link ExecutionRequest}
+     *                      (the one owning the created {@link UnknownErrorExecutionResult})
+     */
+    @Test
+    void testUnknownErrorResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
+        abstractTestCreationOfResult(
+                PlaygroundManager::receiveUnknownError,
+                mockedRequest,
+                PlaygroundManagerHappyPathsTest::unknownErrorResultMatcher
         );
     }
 
@@ -192,18 +236,6 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
 
     /**
      * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
-     * result is instance of {@link TimedOutExecutionResult}, and has a {@code executionRequest} property
-     * whose value is the given {@code request}.
-     *
-     * @param request The expected {@link ExecutionRequest}.
-     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
-     */
-    private static ArgumentMatcher<ExecutionResult> timedOutResultMatcher(final ExecutionRequest request) {
-        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(TimedOutExecutionResult.class, request));
-    }
-
-    /**
-     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
      * result is instance of {@link FinishedExecutionResult},
      * has a {@code exitCode} property whose value is the given {@code exitCode},
      * has a {@code stdout} property whose value is the given {@code stdout},
@@ -228,6 +260,62 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
                 Matchers.hasProperty("stderr", Matchers.equalTo(stderr))
         ));
     }
+
+    /**
+     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
+     * result is instance of {@link TimedOutExecutionResult}, and has a {@code executionRequest} property
+     * whose value is the given {@code request}.
+     *
+     * @param request The expected {@link ExecutionRequest}.
+     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
+     */
+    private static ArgumentMatcher<ExecutionResult> timedOutResultMatcher(final ExecutionRequest request) {
+        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(TimedOutExecutionResult.class, request));
+    }
+
+    /**
+     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
+     * result is instance of {@link CompileErrorExecutionResult},
+     * has a {@code compilerErrors} property whose value is the given {@code compilerErrors} {@link List},
+     * and has a {@code executionRequest} property whose value is the given {@code request}.
+     *
+     * @param compilerErrors The expected compiler errors.
+     * @param request        The expected {@link ExecutionRequest}.
+     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
+     */
+    private static ArgumentMatcher<ExecutionResult> compileErrorResultMatcher(
+            final List<String> compilerErrors,
+            final ExecutionRequest request) {
+        return new HamcrestArgumentMatcher<>(Matchers.allOf(
+                basicExecutionResultMatcher(CompileErrorExecutionResult.class, request),
+                Matchers.hasProperty("compilerErrors", Matchers.equalTo(compilerErrors))
+        ));
+    }
+
+    /**
+     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
+     * result is instance of {@link InitializationErrorExecutionResult}, and has a {@code executionRequest} property
+     * whose value is the given {@code request}.
+     *
+     * @param request The expected {@link ExecutionRequest}.
+     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
+     */
+    private static ArgumentMatcher<ExecutionResult> initializationErrorResultMatcher(final ExecutionRequest request) {
+        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(InitializationErrorExecutionResult.class, request));
+    }
+
+    /**
+     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
+     * result is instance of {@link UnknownErrorExecutionResult}, and has a {@code executionRequest} property
+     * whose value is the given {@code request}.
+     *
+     * @param request The expected {@link ExecutionRequest}.
+     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
+     */
+    private static ArgumentMatcher<ExecutionResult> unknownErrorResultMatcher(final ExecutionRequest request) {
+        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(UnknownErrorExecutionResult.class, request));
+    }
+
 
     /**
      * Creates a {@link Matcher} with basic stuff of an {@link ExecutionResult} (i.e owner and subtype).

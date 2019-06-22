@@ -59,7 +59,6 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
         Mockito.verifyZeroInteractions(executorServiceProxy);
     }
 
-    // Not testing PlaygroundManager#receiveTimedOut(long) because there are no possible invalid arguments.
 
     @Test
     void testFinishedExecutionResultReceptionFailsWithInvalidArguments(
@@ -83,4 +82,30 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
         Mockito.verifyNoMoreInteractions(executionResultRepository);
         Mockito.verifyZeroInteractions(executorServiceProxy);
     }
+
+    // Not testing PlaygroundManager#receiveTimedOut(long) because there are no possible invalid arguments.
+
+    @Test
+    void testCompileErrorResultReceptionFailsWithInvalidArguments(
+            @Mock(name = "request") final ExecutionRequest mockedRequest) {
+        final var requestId = TestHelper.validExecutionRequestId();
+        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
+        Mockito.when(executionResultRepository.existsFor(mockedRequest)).thenReturn(false);
+        Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> playgroundManager.receiveCompileError(
+                        TestHelper.invalidInputOutputList(),
+                        requestId
+                ),
+                "Using invalid arguments when creating a Compile Error Result" +
+                        " did not throw an IllegalArgumentException."
+        );
+        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
+        Mockito.verify(executionResultRepository, Mockito.times(1)).existsFor(mockedRequest);
+        Mockito.verifyNoMoreInteractions(executionResultRepository);
+        Mockito.verifyZeroInteractions(executorServiceProxy);
+    }
+
+    // Not testing PlaygroundManager#receiveInitializationError(long) because there are no possible invalid arguments.
+    // Not testing PlaygroundManager#receiveUnknownError(long) because there are no possible invalid arguments.
 }

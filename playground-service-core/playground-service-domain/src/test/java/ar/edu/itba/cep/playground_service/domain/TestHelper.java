@@ -5,9 +5,11 @@ import ar.edu.itba.cep.playground_service.models.ExecutionResult;
 import ar.edu.itba.cep.playground_service.models.Language;
 import com.github.javafaker.Faker;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -95,6 +97,30 @@ class TestHelper {
         return Faker.instance()
                 .lorem()
                 .words(STRING_LISTS_SIZE);
+    }
+
+    /**
+     * @return A random compiled {@link Language}.
+     */
+    /* package */
+    static Language compiledLanguage() {
+        final var compiledLanguages = Arrays.stream(Language.values())
+                .filter(Language::isCompiled)
+                .collect(Collectors.toList());
+        final var index = (int) Faker.instance().number().numberBetween(0L, compiledLanguages.size());
+        return compiledLanguages.get(index);
+    }
+
+    /**
+     * @return A random non-compiled {@link Language}.
+     */
+    /* package */
+    static Language nonCompiledLanguage() {
+        final var nonCompiledLanguages = Arrays.stream(Language.values())
+                .filter(Predicate.not(Language::isCompiled))
+                .collect(Collectors.toList());
+        final var index = (int) Faker.instance().number().numberBetween(0L, nonCompiledLanguages.size());
+        return nonCompiledLanguages.get(index);
     }
 
 

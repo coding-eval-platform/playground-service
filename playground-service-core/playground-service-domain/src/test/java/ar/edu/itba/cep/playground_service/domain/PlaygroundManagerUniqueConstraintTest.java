@@ -1,10 +1,7 @@
 package ar.edu.itba.cep.playground_service.domain;
 
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
-import ar.edu.itba.cep.playground_service.models.ExecutionResult;
-import ar.edu.itba.cep.playground_service.models.FinishedExecutionResult;
-import ar.edu.itba.cep.playground_service.models.TimedOutExecutionResult;
+import ar.edu.itba.cep.playground_service.models.*;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
 import org.junit.jupiter.api.Assertions;
@@ -45,26 +42,6 @@ class PlaygroundManagerUniqueConstraintTest extends AbstractPlaygroundManagerTes
     // Tests
     // ================================================================================================================
 
-
-    /**
-     * Tests that trying to save a {@link TimedOutExecutionResult} when there is already one
-     * for an {@link ExecutionRequest} that does not fails, and does not try to save it again.
-     *
-     * @param mockedRequest A mocked {@link ExecutionRequest}
-     *                      (the one owning the {@link ExecutionResult} that already exists).
-     */
-    @Test
-    void testSaveTimedOutExecutionResultWhenItAlreadyExistsForExecutionRequest(
-            @Mock(name = "request") final ExecutionRequest mockedRequest,
-            @Mock(name = "result") final ExecutionResult mockedResult) {
-        abstractUniqueConstraintTest(
-                mockedRequest,
-                PlaygroundManager::receiveTimedOut,
-                "Trying to save a Timed Out Execution Result for an Execution Request that does not exist" +
-                        " does not throw a NoSuchEntityException."
-        );
-    }
-
     /**
      * Tests that trying to save a {@link FinishedExecutionResult} when there is already one
      * for an {@link ExecutionRequest} that does not fails, and does not try to save it again.
@@ -86,6 +63,81 @@ class PlaygroundManagerUniqueConstraintTest extends AbstractPlaygroundManagerTes
         );
     }
 
+    /**
+     * Tests that trying to save a {@link TimedOutExecutionResult} when there is already one
+     * for an {@link ExecutionRequest} that does not fails, and does not try to save it again.
+     *
+     * @param mockedRequest A mocked {@link ExecutionRequest}
+     *                      (the one owning the {@link ExecutionResult} that already exists).
+     */
+    @Test
+    void testSaveTimedOutExecutionResultWhenItAlreadyExistsForExecutionRequest(
+            @Mock(name = "request") final ExecutionRequest mockedRequest) {
+        abstractUniqueConstraintTest(
+                mockedRequest,
+                PlaygroundManager::receiveTimedOut,
+                "Trying to save a Timed Out Execution Result for an Execution Request that does not exist" +
+                        " does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that trying to save a {@link CompileErrorExecutionResult} when there is already one
+     * for an {@link ExecutionRequest} that does not fails, and does not try to save it again.
+     *
+     * @param mockedRequest A mocked {@link ExecutionRequest}
+     *                      (the one owning the {@link ExecutionResult} that already exists).
+     */
+    @Test
+    void testSaveCompileErrorExecutionResultWhenItAlreadyExistsForExecutionRequest(
+            @Mock(name = "request") final ExecutionRequest mockedRequest) {
+        final var compilerErrors = TestHelper.validInputOutputList();
+        abstractUniqueConstraintTest(
+                mockedRequest,
+                (manager, id) -> manager.receiveCompileError(compilerErrors, id),
+                "Trying to save an Compile Error Execution Result" +
+                        " for an Execution Request that does not exist" +
+                        " does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that trying to save a {@link InitializationErrorExecutionResult} when there is already one
+     * for an {@link ExecutionRequest} that does not fails, and does not try to save it again.
+     *
+     * @param mockedRequest A mocked {@link ExecutionRequest}
+     *                      (the one owning the {@link ExecutionResult} that already exists).
+     */
+    @Test
+    void testSaveInitializationErrorExecutionResultWhenItAlreadyExistsForExecutionRequest(
+            @Mock(name = "request") final ExecutionRequest mockedRequest) {
+        abstractUniqueConstraintTest(
+                mockedRequest,
+                PlaygroundManager::receiveInitializationError,
+                "Trying to save an Initialization Error Execution Result" +
+                        " for an Execution Request that does not exist" +
+                        " does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that trying to save a {@link UnknownErrorExecutionResult} when there is already one
+     * for an {@link ExecutionRequest} that does not fails, and does not try to save it again.
+     *
+     * @param mockedRequest A mocked {@link ExecutionRequest}
+     *                      (the one owning the {@link ExecutionResult} that already exists).
+     */
+    @Test
+    void testSaveUnknownErrorExecutionResultWhenItAlreadyExistsForExecutionRequest(
+            @Mock(name = "request") final ExecutionRequest mockedRequest) {
+        abstractUniqueConstraintTest(
+                mockedRequest,
+                PlaygroundManager::receiveUnknownError,
+                "Trying to save an Unknown Error Execution Result" +
+                        " for an Execution Request that does not exist" +
+                        " does not throw a NoSuchEntityException."
+        );
+    }
 
     // ================================================================================================================
     // Abstract tests
