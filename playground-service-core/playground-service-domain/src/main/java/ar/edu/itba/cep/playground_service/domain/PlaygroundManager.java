@@ -81,18 +81,37 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResultProc
 
     @Override
     @Transactional
-    public void receiveTimedOut(final long executionRequestId) {
+    public void receiveFinished(
+            final int exitCode,
+            final List<String> stdout,
+            final List<String> stderr,
+            final long executionRequestId) throws NoSuchEntityException {
+        storeResultFor(executionRequestId, request -> new FinishedExecutionResult(exitCode, stdout, stderr, request));
+    }
+
+    @Override
+    @Transactional
+    public void receiveTimedOut(final long executionRequestId) throws NoSuchEntityException {
         storeResultFor(executionRequestId, TimedOutExecutionResult::new);
     }
 
     @Override
     @Transactional
-    public void receiveFinished(
-            final int exitCode,
-            final List<String> stdout,
-            final List<String> stderr,
-            final long executionRequestId) {
-        storeResultFor(executionRequestId, request -> new FinishedExecutionResult(exitCode, stdout, stderr, request));
+    public void receiveCompileError(
+            final List<String> compilerErrors,
+            final long executionRequestId) throws NoSuchEntityException {
+        storeResultFor(executionRequestId, request -> new CompileErrorExecutionResult(compilerErrors, request));
+    }
+
+    @Override
+    @Transactional
+    public void receiveInitializationError(final long executionRequestId) throws NoSuchEntityException {
+        storeResultFor(executionRequestId, InitializationErrorExecutionResult::new);
+    }
+
+    @Override
+    public void receiveUnknownError(final long executionRequestId) throws NoSuchEntityException {
+        storeResultFor(executionRequestId, UnknownErrorExecutionResult::new);
     }
 
     /**

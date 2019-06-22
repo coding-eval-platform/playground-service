@@ -1,10 +1,7 @@
 package ar.edu.itba.cep.playground_service.domain;
 
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
-import ar.edu.itba.cep.playground_service.models.ExecutionResult;
-import ar.edu.itba.cep.playground_service.models.FinishedExecutionResult;
-import ar.edu.itba.cep.playground_service.models.TimedOutExecutionResult;
+import ar.edu.itba.cep.playground_service.models.*;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
 import com.bellotapps.webapps_commons.exceptions.NoSuchEntityException;
@@ -78,18 +75,6 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
         );
     }
 
-    /**
-     * Tests that saving a {@link TimedOutExecutionResult} for an {@link ExecutionRequest} that does not exist
-     * throws a {@link NoSuchEntityException}.
-     */
-    @Test
-    void testSaveTimedOutExecutionResultForExecutionRequestThatDoesNotExist() {
-        abstractNonExistenceRequestTest(
-                PlaygroundManager::receiveTimedOut,
-                "Trying to save a Timed Out Execution Result for an Execution Request that does not exist" +
-                        " does not throw a NoSuchEntityException."
-        );
-    }
 
     /**
      * Tests that saving a {@link FinishedExecutionResult} for an {@link ExecutionRequest} that does not exist
@@ -104,6 +89,59 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
                 (manager, id) -> manager.receiveFinished(exitCode, stdout, stderr, id),
                 "Trying to save a Finished Execution Result for an Execution Request that does not exist" +
                         " does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that saving a {@link TimedOutExecutionResult} for an {@link ExecutionRequest} that does not exist
+     * throws a {@link NoSuchEntityException}.
+     */
+    @Test
+    void testSaveTimedOutExecutionResultForExecutionRequestThatDoesNotExist() {
+        abstractNonExistenceRequestTest(
+                PlaygroundManager::receiveTimedOut,
+                "Trying to save a Timed Out Execution Result for an Execution Request that does not exist" +
+                        " does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that saving a {@link CompileErrorExecutionResult} for an {@link ExecutionRequest} that does not exist
+     * throws a {@link NoSuchEntityException}.
+     */
+    @Test
+    void testSaveCompileErrorExecutionResultForExecutionRequestThatDoesNotExist() {
+        final var compilerErrors = TestHelper.validInputOutputList();
+        abstractNonExistenceRequestTest(
+                (manager, id) -> manager.receiveCompileError(compilerErrors, id),
+                "Trying to save a Compile Error Execution Result for an Execution Request" +
+                        " that does not exist does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that saving an {@link InitializationErrorExecutionResult}
+     * for an {@link ExecutionRequest} that does not exist throws a {@link NoSuchEntityException}.
+     */
+    @Test
+    void testSaveInitializationErrorExecutionResultForExecutionRequestThatDoesNotExist() {
+        abstractNonExistenceRequestTest(
+                PlaygroundManager::receiveInitializationError,
+                "Trying to save an Initialization Error Execution Result for an Execution Request" +
+                        " that does not exist does not throw a NoSuchEntityException."
+        );
+    }
+
+    /**
+     * Tests that saving a {@link UnknownErrorExecutionResult} for an {@link ExecutionRequest} that does not exist
+     * throws a {@link NoSuchEntityException}.
+     */
+    @Test
+    void testSaveUnknownErrorExecutionResultForExecutionRequestThatDoesNotExist() {
+        abstractNonExistenceRequestTest(
+                PlaygroundManager::receiveUnknownError,
+                "Trying to save an Unknown Error Execution Result for an Execution Request" +
+                        " that does not exist does not throw a NoSuchEntityException."
         );
     }
 

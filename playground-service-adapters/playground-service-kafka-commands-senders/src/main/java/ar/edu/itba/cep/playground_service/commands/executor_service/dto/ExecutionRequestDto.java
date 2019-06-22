@@ -12,34 +12,19 @@ import java.util.List;
 public class ExecutionRequestDto {
 
     /**
-     * The code to be run.
+     * The {@link ExecutionRequest} being wrapped.
      */
-    private final String code;
-    /**
-     * The input arguments to be passed to the execution.
-     */
-    private final List<String> inputs;
-    /**
-     * The time given to execute, in milliseconds..
-     */
-    private final Long timeout;
-    /**
-     * The programming language in which the {@link #code} is written.
-     */
-    private final Language language;
+    private final ExecutionRequest executionRequest;
 
 
     /**
      * Constructor.
      *
-     * @param executionRequest The {@link ExecutionRequest} from where data is taken.
+     * @param executionRequest The {@link ExecutionRequest} being wrapped.
      * @throws IllegalArgumentException If any argument is not valid.
      */
     public ExecutionRequestDto(final ExecutionRequest executionRequest) {
-        this.code = executionRequest.getCode();
-        this.inputs = executionRequest.getInputs();
-        this.timeout = executionRequest.getTimeout();
-        this.language = executionRequest.getLanguage();
+        this.executionRequest = executionRequest;
     }
 
 
@@ -48,7 +33,7 @@ public class ExecutionRequestDto {
      */
     @JsonProperty(value = "code", access = JsonProperty.Access.READ_ONLY)
     public String getCode() {
-        return code;
+        return executionRequest.getCode();
     }
 
     /**
@@ -56,7 +41,7 @@ public class ExecutionRequestDto {
      */
     @JsonProperty(value = "inputs", access = JsonProperty.Access.READ_ONLY)
     public List<String> getInputs() {
-        return inputs;
+        return executionRequest.getInputs();
     }
 
     /**
@@ -64,7 +49,7 @@ public class ExecutionRequestDto {
      */
     @JsonProperty(value = "timeout", access = JsonProperty.Access.READ_ONLY)
     public Long getTimeout() {
-        return timeout;
+        return executionRequest.getTimeout();
     }
 
     /**
@@ -72,6 +57,6 @@ public class ExecutionRequestDto {
      */
     @JsonProperty(value = "language", access = JsonProperty.Access.READ_ONLY)
     public Language getLanguage() {
-        return language;
+        return executionRequest.getLanguage();
     }
 }

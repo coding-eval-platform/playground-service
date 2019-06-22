@@ -2,9 +2,12 @@ package ar.edu.itba.cep.playground_service.models;
 
 import com.github.javafaker.Faker;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Helper class for testing.
@@ -77,6 +80,30 @@ class TestHelper {
                 .words(STRING_LISTS_SIZE);
     }
 
+    /**
+     * @return A random compiled {@link Language}.
+     */
+    /* package */
+    static Language compiledLanguage() {
+        final var compiledLanguages = Arrays.stream(Language.values())
+                .filter(Language::isCompiled)
+                .collect(Collectors.toList());
+        final var index = (int) Faker.instance().number().numberBetween(0L, compiledLanguages.size());
+        return compiledLanguages.get(index);
+    }
+
+    /**
+     * @return A random non-compiled {@link Language}.
+     */
+    /* package */
+    static Language nonCompiledLanguage() {
+        final var nonCompiledLanguages = Arrays.stream(Language.values())
+                .filter(Predicate.not(Language::isCompiled))
+                .collect(Collectors.toList());
+        final var index = (int) Faker.instance().number().numberBetween(0L, nonCompiledLanguages.size());
+        return nonCompiledLanguages.get(index);
+    }
+
 
     // ================================================================================================================
     // Invalid values
@@ -103,5 +130,4 @@ class TestHelper {
     static long nonPositiveTimeout() {
         return Faker.instance().number().numberBetween(Long.MIN_VALUE, 1);
     }
-
 }

@@ -49,11 +49,6 @@
         </attributes>
     </entity>
 
-    <entity class="TimedOutExecutionResult" access="FIELD">
-        <table name="timed_out_execution_result"/>
-        <primary-key-join-column name="result_id"/>
-    </entity>
-
     <entity class="FinishedExecutionResult" access="FIELD">
         <table name="finished_execution_results"/>
         <primary-key-join-column name="result_id"/>
@@ -76,5 +71,34 @@
                 </collection-table>
             </element-collection>
         </attributes>
+    </entity>
+
+    <entity class="TimedOutExecutionResult" access="FIELD">
+        <table name="timed_out_execution_result"/>
+        <primary-key-join-column name="result_id"/>
+    </entity>
+
+    <entity class="CompileErrorExecutionResult" access="FIELD">
+        <table name="compile_error_execution_results"/>
+        <primary-key-join-column name="result_id"/>
+        <attributes>
+            <element-collection name="compilerErrors" fetch="EAGER">
+                <order-column name="error_order" nullable="false" insertable="true" updatable="false"/>
+                <column name="error" nullable="false" insertable="true" updatable="false"/>
+                <collection-table name="compile_error_execution_results_errors">
+                    <join-column name="result_id"/>
+                </collection-table>
+            </element-collection>
+        </attributes>
+    </entity>
+
+    <entity class="InitializationErrorExecutionResult" access="FIELD">
+        <table name="initialization_error_execution_result"/>
+        <primary-key-join-column name="result_id"/>
+    </entity>
+
+    <entity class="UnknownErrorExecutionResult" access="FIELD">
+        <table name="unknown_error_execution_result"/>
+        <primary-key-join-column name="result_id"/>
     </entity>
 </entity-mappings>

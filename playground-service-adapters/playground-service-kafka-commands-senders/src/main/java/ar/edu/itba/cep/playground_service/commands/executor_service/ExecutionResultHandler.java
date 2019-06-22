@@ -1,9 +1,10 @@
 package ar.edu.itba.cep.playground_service.commands.executor_service;
 
 import ar.edu.itba.cep.playground_service.commands.ExecutionResultProcessor;
-import ar.edu.itba.cep.playground_service.commands.executor_service.dto.ExecutionResultDto;
-import ar.edu.itba.cep.playground_service.commands.executor_service.dto.FinishedExecutionResultDto;
-import ar.edu.itba.cep.playground_service.commands.executor_service.dto.TimedOutExecutionResultDto;
+import ar.edu.itba.cep.playground_service.commands.executor_service.dto.*;
+import ar.edu.itba.cep.playground_service.models.CompileErrorExecutionResult;
+import ar.edu.itba.cep.playground_service.models.InitializationErrorExecutionResult;
+import ar.edu.itba.cep.playground_service.models.UnknownErrorExecutionResult;
 import com.bellotapps.the_messenger.commons.Message;
 import com.bellotapps.the_messenger.commons.payload.PayloadDeserializer;
 import com.bellotapps.the_messenger.consumer.DeserializerMessageHandler;
@@ -60,10 +61,6 @@ public class ExecutionResultHandler extends DeserializerMessageHandler<Execution
      * @param executionResultDto The {@link ExecutionResultDto} to be processed.
      */
     private void processResultType(final long requestId, final ExecutionResultDto executionResultDto) {
-        if (executionResultDto instanceof TimedOutExecutionResultDto) {
-            executionResultProcessor.receiveTimedOut(requestId);
-            return;
-        }
         if (executionResultDto instanceof FinishedExecutionResultDto) {
             final var finishedExecutionResultDto = (FinishedExecutionResultDto) executionResultDto;
             executionResultProcessor.receiveFinished(
@@ -72,6 +69,26 @@ public class ExecutionResultHandler extends DeserializerMessageHandler<Execution
                     finishedExecutionResultDto.getStderr(),
                     requestId
             );
+            return;
+        }
+        if (executionResultDto instanceof TimedOutExecutionResultDto) {
+            executionResultProcessor.receiveTimedOut(requestId);
+            return;
+        }
+        if (executionResultDto instanceof CompileErrorExecutionResultDto) {
+            final var compiledErrorExecutionResultDto = (CompileErrorExecutionResultDto) executionResultDto;
+            executionResultProcessor.receiveCompileError(
+                    compiledErrorExecutionResultDto.getCompilerErrors(),
+                    requestId
+            );
+            return;
+        }
+        if (executionResultDto instanceof InitializationErrorExecutionResultDto) {
+            executionResultProcessor.receiveInitializationError(requestId);
+            return;
+        }
+        if (executionResultDto instanceof UnknownErrorExecutionResultDto) {
+            executionResultProcessor.receiveUnknownError(requestId);
             return;
         }
         throw new IllegalArgumentException("Unknown subtype");
