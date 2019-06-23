@@ -43,7 +43,7 @@ class TestHelper {
         final List<Long> validValues = new LinkedList<>();
         validValues.add(null);
         validValues.add(Faker.instance().number().numberBetween(1, Long.MAX_VALUE));
-        final var index = Faker.instance().number().numberBetween(0, validValues.size());
+        final var index = (int) Faker.instance().number().numberBetween(0L, validValues.size());
         return validValues.get(index);
     }
 
@@ -53,7 +53,7 @@ class TestHelper {
     /* package */
     static Language validLanguage() {
         final var languages = Language.values();
-        final var index = Faker.instance().number().numberBetween(0, languages.length);
+        final var index = (int) Faker.instance().number().numberBetween(0L, languages.length);
         return languages[index];
     }
 
