@@ -27,7 +27,7 @@ public class ExecutionRequestUploadDto {
     /**
      * The input arguments to be passed to the execution.
      */
-    @NotEmpty(message = "The inputs list must not be null nor empty", payload = IllegalValue.class)
+    @NotNull(message = "The inputs list must not be null", payload = IllegalValue.class)
     @NotNullsInIterable(message = "The inputs list contains nulls", payload = IllegalValue.class)
     private final List<String> inputs;
     /**
