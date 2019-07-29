@@ -110,6 +110,7 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResultProc
     }
 
     @Override
+    @Transactional
     public void receiveUnknownError(final long executionRequestId) throws NoSuchEntityException {
         storeResultFor(executionRequestId, UnknownErrorExecutionResult::new);
     }
