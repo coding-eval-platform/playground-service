@@ -1,17 +1,17 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.models.ExecutionResponse;
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
-import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
+import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 /**
  * Test class for {@link PlaygroundManager}, containing tests for the illegal arguments situations
@@ -23,22 +23,23 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
     /**
      * Constructor.
      *
-     * @param executionRequestRepository A mocked {@link ExecutionRequestRepository} passed to super class.
-     * @param executionResultRepository  A mocked {@link ExecutionResultRepository} passed to super class.
-     * @param executorServiceProxy       A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
+     * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
      */
     PlaygroundManagerIllegalArgumentsTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
-            @Mock(name = "resultRepository") final ExecutionResultRepository executionResultRepository,
+            @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
             @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
         super(executionRequestRepository,
-                executionResultRepository,
+                executionResponseRepository,
                 executorServiceProxy);
     }
 
 
     /**
-     * Tests that an {@link ExecutionRequest} is not created (i.e is not saved) when arguments are not valid.
+     * Tests that a {@link PlaygroundServiceExecutionRequest} is not created (i.e is not saved)
+     * when arguments are not valid.
      */
     @Test
     void testExecutionRequestIsNotCreatedUsingInvalidArguments() {
@@ -47,6 +48,8 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
                 () -> playgroundManager.requestExecution(
                         TestHelper.invalidCode(),
                         TestHelper.invalidInputOutputList(),
+                        TestHelper.invalidInputOutputList(),
+                        TestHelper.validCompilerFlags(),
                         TestHelper.nonPositiveTimeout(),
                         TestHelper.invalidLanguage()
 
@@ -54,58 +57,28 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
                 "Using invalid arguments when creating an Execution Request" +
                         " did not throw an IllegalArgumentException."
         );
-        Mockito.verifyZeroInteractions(executionRequestRepository);
-        Mockito.verifyZeroInteractions(executionResultRepository);
-        Mockito.verifyZeroInteractions(executorServiceProxy);
+        verifyZeroInteractions(executionRequestRepository);
+        verifyZeroInteractions(executionResponseRepository);
+        verifyZeroInteractions(executorServiceProxy);
     }
 
-
+    /**
+     * Tests that an {@link IllegalArgumentException} is thrown when invoking the
+     * {@link PlaygroundManager#processResponse(long, ExecutionResponse)} with invalid arguments.
+     */
     @Test
-    void testFinishedExecutionResultReceptionFailsWithInvalidArguments(
-            @Mock(name = "request") final ExecutionRequest mockedRequest) {
-        final var requestId = TestHelper.validExecutionRequestId();
-        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
-        Mockito.when(executionResultRepository.existsFor(mockedRequest)).thenReturn(false);
+    void testProcessResponseWithNullResponse() {
         Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> playgroundManager.receiveFinished(
-                        TestHelper.validExitCode(), // No invalid value for this
-                        TestHelper.invalidInputOutputList(),
-                        TestHelper.invalidInputOutputList(),
-                        requestId
+                () -> playgroundManager.processResponse(
+                        TestHelper.validExecutionRequestId(),
+                        null
                 ),
-                "Using invalid arguments when creating a Finished Execution Result" +
+                "Using invalid arguments when invoking the process response method" +
                         " did not throw an IllegalArgumentException."
         );
-        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
-        Mockito.verify(executionResultRepository, Mockito.times(1)).existsFor(mockedRequest);
-        Mockito.verifyNoMoreInteractions(executionResultRepository);
-        Mockito.verifyZeroInteractions(executorServiceProxy);
+        verifyZeroInteractions(executionRequestRepository);
+        verifyZeroInteractions(executionResponseRepository);
+        verifyZeroInteractions(executorServiceProxy);
     }
-
-    // Not testing PlaygroundManager#receiveTimedOut(long) because there are no possible invalid arguments.
-
-    @Test
-    void testCompileErrorResultReceptionFailsWithInvalidArguments(
-            @Mock(name = "request") final ExecutionRequest mockedRequest) {
-        final var requestId = TestHelper.validExecutionRequestId();
-        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
-        Mockito.when(executionResultRepository.existsFor(mockedRequest)).thenReturn(false);
-        Assertions.assertThrows(
-                IllegalArgumentException.class,
-                () -> playgroundManager.receiveCompileError(
-                        TestHelper.invalidInputOutputList(),
-                        requestId
-                ),
-                "Using invalid arguments when creating a Compile Error Result" +
-                        " did not throw an IllegalArgumentException."
-        );
-        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
-        Mockito.verify(executionResultRepository, Mockito.times(1)).existsFor(mockedRequest);
-        Mockito.verifyNoMoreInteractions(executionResultRepository);
-        Mockito.verifyZeroInteractions(executorServiceProxy);
-    }
-
-    // Not testing PlaygroundManager#receiveInitializationError(long) because there are no possible invalid arguments.
-    // Not testing PlaygroundManager#receiveUnknownError(long) because there are no possible invalid arguments.
 }

@@ -6,7 +6,7 @@ Service in charge of providing a REST API of the [Executor Service](https://gith
 ## Features
 
 - Create execution requests
-- Query exeuciton results
+- Query exeuciton responses
 
 
 ## Getting started

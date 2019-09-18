@@ -7,5 +7,5 @@ public class Routes {
 
     public static final String EXECUTION_REQUESTS = "/execution-requests";
 
-    public static final String EXECUTION_RESULT = "/execution-requests/{id : \\d+}/result";
+    public static final String EXECUTION_RESPONSE = "/execution-requests/{id : \\d+}/response";
 }

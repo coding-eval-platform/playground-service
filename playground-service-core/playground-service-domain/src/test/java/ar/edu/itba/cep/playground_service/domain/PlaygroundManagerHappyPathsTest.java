@@ -1,24 +1,21 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.models.ExecutionResponse;
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.*;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
-import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
+import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * Test class for {@link PlaygroundManager}, containing tests for the happy paths
@@ -30,16 +27,16 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
     /**
      * Constructor.
      *
-     * @param executionRequestRepository A mocked {@link ExecutionRequestRepository} passed to super class.
-     * @param executionResultRepository  A mocked {@link ExecutionResultRepository} passed to super class.
-     * @param executorServiceProxy       A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
+     * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
      */
     PlaygroundManagerHappyPathsTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
-            @Mock(name = "resultRepository") final ExecutionResultRepository executionResultRepository,
+            @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
             @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
         super(executionRequestRepository,
-                executionResultRepository,
+                executionResponseRepository,
                 executorServiceProxy);
     }
 
@@ -49,287 +46,122 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
     // ================================================================================================================
 
     /**
-     * Tests that an {@link ExecutionRequest} is created (i.e is saved and sent to run) when arguments are valid.
+     * Tests that a {@link PlaygroundServiceExecutionRequest} is created
+     * (i.e is saved and sent to run) when arguments are valid.
      */
     @Test
     void testExecutionRequestIsCreatedUsingValidArguments() {
         final var code = TestHelper.validCode();
-        final var inputs = TestHelper.validInputOutputList();
+        final var programArguments = TestHelper.validInputOutputList();
+        final var stdin = TestHelper.validInputOutputList();
+        final var compilerFlags = TestHelper.validCompilerFlags();
         final var timeout = TestHelper.validTimeout();
         final var language = TestHelper.validLanguage();
 
-        Mockito.when(executionRequestRepository.save(Mockito.any(ExecutionRequest.class))).then(i -> i.getArgument(0));
-        final var request = playgroundManager.requestExecution(code, inputs, timeout, language);
+        when(executionRequestRepository.save(any(PlaygroundServiceExecutionRequest.class))).then(i -> i.getArgument(0));
+        final var playgroundServiceExecutionRequest = playgroundManager.requestExecution(
+                code,
+                programArguments,
+                stdin,
+                compilerFlags,
+                timeout,
+                language
+        );
+        final var commonsRequest = playgroundServiceExecutionRequest.getRequest();
         Assertions.assertAll("Execution Request properties are not the expected",
                 () -> Assertions.assertEquals(
                         code,
-                        request.getCode(),
+                        commonsRequest.getCode(),
                         "There is a mismatch in the code"
                 ),
                 () -> Assertions.assertEquals(
-                        inputs,
-                        request.getInputs(),
-                        "There is a mismatch in the inputs moment"
+                        programArguments,
+                        commonsRequest.getProgramArguments(),
+                        "There is a mismatch in the program arguments list"
+                ),
+                () -> Assertions.assertEquals(
+                        stdin,
+                        commonsRequest.getStdin(),
+                        "There is a mismatch in the stdin list"
+                ),
+                () -> Assertions.assertEquals(
+                        compilerFlags,
+                        commonsRequest.getCompilerFlags(),
+                        "There is a mismatch in the compiler flags"
                 ),
                 () -> Assertions.assertEquals(
                         timeout,
-                        request.getTimeout(),
+                        commonsRequest.getTimeout(),
                         "There is a mismatch in the timeout"
                 ),
                 () -> Assertions.assertEquals(
                         language,
-                        request.getLanguage(),
+                        commonsRequest.getLanguage(),
                         "There is a mismatch in the language"
                 )
         );
-        Mockito.verify(executionRequestRepository, Mockito.only()).save(Mockito.any(ExecutionRequest.class));
-        Mockito.verifyZeroInteractions(executionResultRepository);
-        Mockito.verify(executorServiceProxy, Mockito.only()).requestExecution(request);
+        verify(executionRequestRepository, only()).save(any(PlaygroundServiceExecutionRequest.class));
+        verifyZeroInteractions(executionResponseRepository);
+        verify(executorServiceProxy, only()).requestExecution(playgroundServiceExecutionRequest);
     }
 
     /**
-     * Tests that an {@link ExecutionResult} is returned when it exists for a given {@link ExecutionRequest}.
+     * Tests that a {@link PlaygroundServiceExecutionResponse} is returned
+     * when it exists for a given {@link PlaygroundServiceExecutionRequest}.
      *
-     * @param mockedRequest A mocked {@link ExecutionRequest} (the one owning the {@link ExecutionResult}).
-     * @param mockedResult  A mocker {@link ExecutionResult} (the one being returned).
+     * @param request            A mocked {@link PlaygroundServiceExecutionRequest}
+     *                           (the one owning the {@link PlaygroundServiceExecutionResponse}).
+     * @param playgroundResponse A mocker {@link PlaygroundServiceExecutionResponse} (the one being returned).
      */
     @Test
-    void testResultIsReturnedWhenItExists(
-            @Mock(name = "request") final ExecutionRequest mockedRequest,
-            @Mock(name = "result") final ExecutionResult mockedResult) {
+    void testResponseIsReturnedWhenItExists(
+            @Mock(name = "request") final PlaygroundServiceExecutionRequest request,
+            @Mock(name = "response") final ExecutionResponse response,
+            @Mock(name = "playgroundResponse") final PlaygroundServiceExecutionResponse playgroundResponse) {
         final var requestId = TestHelper.validExecutionRequestId();
-        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
-        Mockito.when(executionResultRepository.getResultFor(mockedRequest)).thenReturn(Optional.of(mockedResult));
-        final var result = playgroundManager.getResultFor(requestId);
+        when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(request));
+        when(executionResponseRepository.getResponseFor(request)).thenReturn(Optional.of(playgroundResponse));
+        when(playgroundResponse.getResponse()).thenReturn(response);
+        final var retrievedResponse = playgroundManager.getResponseFor(requestId);
         Assertions.assertTrue(
-                result.isPresent(),
-                "The manager returned an empty Optional when the result exists"
+                retrievedResponse.isPresent(),
+                "The manager returned an empty Optional when the response exists"
         );
         Assertions.assertEquals(
-                mockedResult,
-                result.get(),
-                "The returned result is not the one returned by the repository."
+                playgroundResponse,
+                retrievedResponse.get(),
+                "The returned response is not the one returned by the repository."
         );
-        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
-        Mockito.verify(executionResultRepository, Mockito.only()).getResultFor(mockedRequest);
-        Mockito.verifyZeroInteractions(executorServiceProxy);
+        verify(executionRequestRepository, only()).findById(requestId);
+        verify(executionResponseRepository, only()).getResponseFor(request);
+        verifyZeroInteractions(executorServiceProxy);
     }
 
     /**
-     * Tests the creation of a {@link FinishedExecutionResult}.
+     * Tests the creation of a {@link PlaygroundServiceExecutionResponse}.
      *
-     * @param mockedRequest A mocker {@link ExecutionRequest}
-     *                      (the one owning the created {@link FinishedExecutionResult})
+     * @param response A mocked commons {@link ExecutionResponse} (the one to be processed).
+     * @param request  A mocked {@link PlaygroundServiceExecutionRequest}
+     *                 (the one owning the {@link PlaygroundServiceExecutionResponse}) to be created.
      */
     @Test
-    void testFinishedResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
-        final var exitCode = TestHelper.validExitCode();
-        final var stdout = TestHelper.validInputOutputList();
-        final var stderr = TestHelper.validInputOutputList();
-        abstractTestCreationOfResult(
-                (manager, id) -> manager.receiveFinished(exitCode, stdout, stderr, id),
-                mockedRequest,
-                req -> finishedResultMatcher(exitCode, stdout, stderr, req)
-        );
-    }
+    void testExecutionResponseIsCreated(
+            @Mock(name = "response") final ExecutionResponse response,
+            @Mock(name = "request") final PlaygroundServiceExecutionRequest request) {
 
-    /**
-     * Tests the creation of a {@link TimedOutExecutionResult}.
-     *
-     * @param mockedRequest A mocker {@link ExecutionRequest}
-     *                      (the one owning the created {@link TimedOutExecutionResult})
-     */
-    @Test
-    void testTimedOutResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
-        abstractTestCreationOfResult(
-                PlaygroundManager::receiveTimedOut,
-                mockedRequest,
-                PlaygroundManagerHappyPathsTest::timedOutResultMatcher
-        );
-    }
-
-    /**
-     * Tests the creation of a {@link CompileErrorExecutionResult}.
-     *
-     * @param mockedRequest A mocker {@link ExecutionRequest}
-     *                      (the one owning the created {@link CompileErrorExecutionResult})
-     */
-    @Test
-    void testCompileErrorResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
-        Mockito.when(mockedRequest.getLanguage()).thenReturn(TestHelper.compiledLanguage());
-        final var compilerErrors = TestHelper.validInputOutputList();
-        abstractTestCreationOfResult(
-                (manager, id) -> manager.receiveCompileError(compilerErrors, id),
-                mockedRequest,
-                req -> compileErrorResultMatcher(compilerErrors, req)
-        );
-    }
-
-    /**
-     * Tests the creation of an {@link InitializationErrorExecutionResult}.
-     *
-     * @param mockedRequest A mocker {@link ExecutionRequest}
-     *                      (the one owning the created {@link InitializationErrorExecutionResult})
-     */
-    @Test
-    void testInitializationErrorResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
-        abstractTestCreationOfResult(
-                PlaygroundManager::receiveInitializationError,
-                mockedRequest,
-                PlaygroundManagerHappyPathsTest::initializationErrorResultMatcher
-        );
-    }
-
-    /**
-     * Tests the creation of an {@link UnknownErrorExecutionResult}.
-     *
-     * @param mockedRequest A mocker {@link ExecutionRequest}
-     *                      (the one owning the created {@link UnknownErrorExecutionResult})
-     */
-    @Test
-    void testUnknownErrorResultIsCreated(@Mock(name = "request") final ExecutionRequest mockedRequest) {
-        abstractTestCreationOfResult(
-                PlaygroundManager::receiveUnknownError,
-                mockedRequest,
-                PlaygroundManagerHappyPathsTest::unknownErrorResultMatcher
-        );
-    }
-
-
-    // ================================================================================================================
-    // Abstract tests
-    // ================================================================================================================
-
-    /**
-     * Abstract test of creation of an {@link ExecutionResult}.
-     *
-     * @param saveOperation   A {@link BiConsumer} of {@link PlaygroundManager} and {@link Long}
-     *                        (the id of the {@link ExecutionRequest}) that performs the action of saving the result
-     *                        by the {@link PlaygroundManager}.
-     * @param mockedRequest   The {@link ExecutionRequest} owning the created {@link ExecutionResult}.
-     * @param matcherProvider A {@link Function} that takes an {@link ExecutionRequest} and returns an
-     *                        {@link ArgumentMatcher} to check the saved {@link ExecutionResult}.
-     */
-    private void abstractTestCreationOfResult(
-            final BiConsumer<PlaygroundManager, Long> saveOperation,
-            final ExecutionRequest mockedRequest,
-            final Function<ExecutionRequest, ArgumentMatcher<ExecutionResult>> matcherProvider) {
         final var requestId = TestHelper.validExecutionRequestId();
 
-        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
-        Mockito.when(executionResultRepository.existsFor(mockedRequest)).thenReturn(false);
-        Mockito.when(executionResultRepository.save(Mockito.any(ExecutionResult.class))).then(i -> i.getArgument(0));
+        when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(request));
+        when(executionResponseRepository.existsFor(request)).thenReturn(false);
+        when(executionResponseRepository.save(any(PlaygroundServiceExecutionResponse.class))).then(i -> i.getArgument(0));
 
-        saveOperation.accept(playgroundManager, requestId);
+        playgroundManager.processResponse(requestId, response);
 
-        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
-        Mockito.verify(executionResultRepository, Mockito.times(1)).existsFor(mockedRequest);
-        Mockito.verify(executionResultRepository, Mockito.times(1))
-                .save(Mockito.argThat(matcherProvider.apply(mockedRequest)));
-        Mockito.verifyNoMoreInteractions(executionResultRepository);
-    }
-
-
-    // ================================================================================================================
-    // Helpers
-    // ================================================================================================================
-
-    /**
-     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
-     * result is instance of {@link FinishedExecutionResult},
-     * has a {@code exitCode} property whose value is the given {@code exitCode},
-     * has a {@code stdout} property whose value is the given {@code stdout},
-     * has a {@code stderr} property whose value is the given {@code stderr},
-     * and has a {@code executionRequest} property whose value is the given {@code request}.
-     *
-     * @param exitCode The expected exit code.
-     * @param stdout   The expected stdout.
-     * @param stderr   The expected stderr.
-     * @param request  The expected {@link ExecutionRequest}.
-     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
-     */
-    private static ArgumentMatcher<ExecutionResult> finishedResultMatcher(
-            final int exitCode,
-            final List<String> stdout,
-            final List<String> stderr,
-            final ExecutionRequest request) {
-        return new HamcrestArgumentMatcher<>(Matchers.allOf(
-                basicExecutionResultMatcher(FinishedExecutionResult.class, request),
-                Matchers.hasProperty("exitCode", Matchers.equalTo(exitCode)),
-                Matchers.hasProperty("stdout", Matchers.equalTo(stdout)),
-                Matchers.hasProperty("stderr", Matchers.equalTo(stderr))
-        ));
-    }
-
-    /**
-     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
-     * result is instance of {@link TimedOutExecutionResult}, and has a {@code executionRequest} property
-     * whose value is the given {@code request}.
-     *
-     * @param request The expected {@link ExecutionRequest}.
-     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
-     */
-    private static ArgumentMatcher<ExecutionResult> timedOutResultMatcher(final ExecutionRequest request) {
-        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(TimedOutExecutionResult.class, request));
-    }
-
-    /**
-     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
-     * result is instance of {@link CompileErrorExecutionResult},
-     * has a {@code compilerErrors} property whose value is the given {@code compilerErrors} {@link List},
-     * and has a {@code executionRequest} property whose value is the given {@code request}.
-     *
-     * @param compilerErrors The expected compiler errors.
-     * @param request        The expected {@link ExecutionRequest}.
-     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
-     */
-    private static ArgumentMatcher<ExecutionResult> compileErrorResultMatcher(
-            final List<String> compilerErrors,
-            final ExecutionRequest request) {
-        return new HamcrestArgumentMatcher<>(Matchers.allOf(
-                basicExecutionResultMatcher(CompileErrorExecutionResult.class, request),
-                Matchers.hasProperty("compilerErrors", Matchers.equalTo(compilerErrors))
-        ));
-    }
-
-    /**
-     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
-     * result is instance of {@link InitializationErrorExecutionResult}, and has a {@code executionRequest} property
-     * whose value is the given {@code request}.
-     *
-     * @param request The expected {@link ExecutionRequest}.
-     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
-     */
-    private static ArgumentMatcher<ExecutionResult> initializationErrorResultMatcher(final ExecutionRequest request) {
-        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(InitializationErrorExecutionResult.class, request));
-    }
-
-    /**
-     * Creates an {@link ArgumentMatcher} of {@link ExecutionResult} that expects the
-     * result is instance of {@link UnknownErrorExecutionResult}, and has a {@code executionRequest} property
-     * whose value is the given {@code request}.
-     *
-     * @param request The expected {@link ExecutionRequest}.
-     * @return The created {@link ArgumentMatcher} of {@link ExecutionResult}.
-     */
-    private static ArgumentMatcher<ExecutionResult> unknownErrorResultMatcher(final ExecutionRequest request) {
-        return new HamcrestArgumentMatcher<>(basicExecutionResultMatcher(UnknownErrorExecutionResult.class, request));
-    }
-
-
-    /**
-     * Creates a {@link Matcher} with basic stuff of an {@link ExecutionResult} (i.e owner and subtype).
-     *
-     * @param subclass The subtype to be checked.
-     * @param request  The expected {@link ExecutionRequest}.
-     * @return The created {@link Matcher}.
-     */
-    private static Matcher<ExecutionResult> basicExecutionResultMatcher(
-            final Class<?> subclass,
-            final ExecutionRequest request) {
-        return Matchers.allOf(
-                Matchers.instanceOf(subclass),
-                Matchers.hasProperty("executionRequest", Matchers.equalTo(request))
+        verify(executionRequestRepository, only()).findById(requestId);
+        verify(executionResponseRepository, times(1)).existsFor(request);
+        verify(executionResponseRepository, times(1)).save(
+                argThat(resp -> resp.getPlaygroundServiceExecutionRequest().equals(request) && resp.getResponse() == response)
         );
+        verifyNoMoreInteractions(executionResponseRepository);
     }
 }

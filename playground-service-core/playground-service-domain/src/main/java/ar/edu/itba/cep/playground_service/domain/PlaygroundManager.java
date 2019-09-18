@@ -1,148 +1,123 @@
 package ar.edu.itba.cep.playground_service.domain;
 
-import ar.edu.itba.cep.playground_service.commands.ExecutionResultProcessor;
+import ar.edu.itba.cep.executor.models.ExecutionRequest;
+import ar.edu.itba.cep.executor.models.ExecutionResponse;
+import ar.edu.itba.cep.executor.models.Language;
+import ar.edu.itba.cep.playground_service.commands.ExecutionResponseProcessor;
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.*;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
-import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
+import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
 import ar.edu.itba.cep.playground_service.services.PlaygroundService;
 import com.bellotapps.webapps_commons.exceptions.NoSuchEntityException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
- * Manager of {@link ExecutionRequest}s and {@link ExecutionResult}s.
+ * Manager of {@link PlaygroundServiceExecutionRequest}s and {@link PlaygroundServiceExecutionResponse}s.
  */
 @Service
+@AllArgsConstructor
 @Transactional(readOnly = true)
-public class PlaygroundManager implements PlaygroundService, ExecutionResultProcessor {
+public class PlaygroundManager implements PlaygroundService, ExecutionResponseProcessor {
 
     /**
      * An {@link ExecutionRequestRepository}.
      */
     private final ExecutionRequestRepository executionRequestRepository;
     /**
-     * An {@link ExecutionResultRepository}.
+     * An {@link ExecutionResponseRepository}.
      */
-    private final ExecutionResultRepository executionResultRepository;
+    private final ExecutionResponseRepository executionResponseRepository;
     /**
      * A proxy for the Executor Service.
      */
     private final ExecutorServiceCommandMessageProxy executorService;
 
 
-    /**
-     * Constructor.
-     *
-     * @param executionRequestRepository An {@link ExecutionRequestRepository}.
-     * @param executionResultRepository  An {@link ExecutionResultRepository}.
-     * @param executorService            A proxy for the Executor Service.
-     */
-    @Autowired
-    public PlaygroundManager(
-            final ExecutionRequestRepository executionRequestRepository,
-            final ExecutionResultRepository executionResultRepository,
-            final ExecutorServiceCommandMessageProxy executorService) {
-        this.executionRequestRepository = executionRequestRepository;
-        this.executionResultRepository = executionResultRepository;
-        this.executorService = executorService;
-    }
-
+    // ================================================================================================================
+    // PlaygroundService methods
+    // ================================================================================================================
 
     @Override
     @Transactional
-    public ExecutionRequest requestExecution(
+    public PlaygroundServiceExecutionRequest requestExecution(
             final String code,
-            final List<String> inputs,
+            final List<String> programArguments,
+            final List<String> stdin,
+            final String compilerFlags,
             final Long timeout,
             final Language language) {
-        final var request = executionRequestRepository.save(
+        final var request = PlaygroundServiceExecutionRequest.fromCommonsRequest(
                 new ExecutionRequest(
                         code,
-                        inputs,
+                        programArguments,
+                        stdin,
+                        compilerFlags,
                         timeout,
                         language
                 )
         );
-        executorService.requestExecution(request);
-        return request;
+        final var savedRequest = executionRequestRepository.save(request);
+        executorService.requestExecution(savedRequest);
+        return savedRequest;
     }
 
     @Override
-    public Optional<ExecutionResult> getResultFor(final long executionRequestId) throws NoSuchEntityException {
+    public Optional<PlaygroundServiceExecutionResponse> getResponseFor(final long executionRequestId)
+            throws NoSuchEntityException {
         final var request = loadExecutionRequest(executionRequestId);
-        return executionResultRepository.getResultFor(request);
+        return executionResponseRepository
+                .getResponseFor(request)
+                .map(response -> {
+                    final var wrappedResponse = response.getResponse();
+                    // Initialize lazy collections
+                    wrappedResponse.getStdout().size();
+                    wrappedResponse.getStderr().size();
+                    return response;
+                })
+                ;
     }
+
+
+    // ================================================================================================================
+    // ExecutionResponseProcessor methods
+    // ================================================================================================================
 
     @Override
     @Transactional
-    public void receiveFinished(
-            final int exitCode,
-            final List<String> stdout,
-            final List<String> stderr,
-            final long executionRequestId) throws NoSuchEntityException {
-        storeResultFor(executionRequestId, request -> new FinishedExecutionResult(exitCode, stdout, stderr, request));
-    }
-
-    @Override
-    @Transactional
-    public void receiveTimedOut(final long executionRequestId) throws NoSuchEntityException {
-        storeResultFor(executionRequestId, TimedOutExecutionResult::new);
-    }
-
-    @Override
-    @Transactional
-    public void receiveCompileError(
-            final List<String> compilerErrors,
-            final long executionRequestId) throws NoSuchEntityException {
-        storeResultFor(executionRequestId, request -> new CompileErrorExecutionResult(compilerErrors, request));
-    }
-
-    @Override
-    @Transactional
-    public void receiveInitializationError(final long executionRequestId) throws NoSuchEntityException {
-        storeResultFor(executionRequestId, InitializationErrorExecutionResult::new);
-    }
-
-    @Override
-    @Transactional
-    public void receiveUnknownError(final long executionRequestId) throws NoSuchEntityException {
-        storeResultFor(executionRequestId, UnknownErrorExecutionResult::new);
-    }
-
-    /**
-     * Loads the {@link ExecutionRequest} with the given {@code executionRequestId}.
-     *
-     * @param executionRequestId The id of the {@link ExecutionRequest} to be loaded.
-     * @return The {@link ExecutionRequest}.
-     * @throws NoSuchEntityException If there is no {@link ExecutionRequest} with the given {@code executionRequestId}.
-     */
-    private ExecutionRequest loadExecutionRequest(final long executionRequestId) throws NoSuchEntityException {
-        return executionRequestRepository.findById(executionRequestId).orElseThrow(NoSuchEntityException::new);
-    }
-
-    /**
-     * Stores an {@link ExecutionResult} that corresponds to the {@link ExecutionRequest}
-     * with the given {@code executionRequestId}.
-     *
-     * @param executionRequestId The id of the {@link ExecutionRequest} that owns the {@link ExecutionResult}.
-     * @param resultSupplier     A {@link Function} that creates an {@link ExecutionResult} that belongs to an
-     *                           input {@link ExecutionRequest}.
-     * @throws NoSuchEntityException If there is no {@link ExecutionRequest} with the given {@code executionRequestId}.
-     */
-    private void storeResultFor(
-            final long executionRequestId,
-            final Function<ExecutionRequest, ExecutionResult> resultSupplier) throws NoSuchEntityException {
+    public void processResponse(final long executionRequestId, final ExecutionResponse response)
+            throws IllegalArgumentException {
+        Assert.notNull(response, "The response must not be null");
         final var request = loadExecutionRequest(executionRequestId);
-        if (executionResultRepository.existsFor(request)) {
-            return; // Avoid adding a new result for the given request (they should be the same though).
+        if (executionResponseRepository.existsFor(request)) {
+            return; // Avoid adding a new response for the given request (they should be the same though).
         }
-        final var result = resultSupplier.apply(request);
-        executionResultRepository.save(result);
+        executionResponseRepository.save(PlaygroundServiceExecutionResponse.fromCommonsResponse(request, response));
+        // TODO: notify reception of response from the executor service.
+    }
+
+
+    // ================================================================================================================
+    // Helpers
+    // ================================================================================================================
+
+    /**
+     * Loads the {@link PlaygroundServiceExecutionRequest} with the given {@code executionRequestId}.
+     *
+     * @param executionRequestId The id of the {@link PlaygroundServiceExecutionRequest} to be loaded.
+     * @return The {@link PlaygroundServiceExecutionRequest}.
+     * @throws NoSuchEntityException If there is no {@link PlaygroundServiceExecutionRequest}
+     *                               with the given {@code executionRequestId}.
+     */
+    private PlaygroundServiceExecutionRequest loadExecutionRequest(final long executionRequestId)
+            throws NoSuchEntityException {
+        return executionRequestRepository.findById(executionRequestId).orElseThrow(NoSuchEntityException::new);
     }
 }

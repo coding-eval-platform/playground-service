@@ -10,7 +10,7 @@ package ar.edu.itba.cep.playground_service.commands.executor_service;
     // ================================================================================================================
 
     /**
-     * The Request Id header key. Used to match an result with a request.
+     * The Request Id header key. Used to match a response with a request.
      */
     /* package */ static final String REQUEST_ID = "Request-Id";
     /**

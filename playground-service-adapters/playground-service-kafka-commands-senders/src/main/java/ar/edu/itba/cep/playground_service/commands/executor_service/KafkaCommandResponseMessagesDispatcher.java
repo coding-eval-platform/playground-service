@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * Kafka command reply messages dispatcher.
  */
 @Component
-public class KafkaCommandResultMessagesDispatcher {
+public class KafkaCommandResponseMessagesDispatcher {
 
     /**
      * The {@link MessageHandler} in charge of dispatching actions based on received messages.
@@ -19,10 +19,10 @@ public class KafkaCommandResultMessagesDispatcher {
     private final MessageHandler messageHandler;
 
     @Autowired
-    public KafkaCommandResultMessagesDispatcher(final MessageHandler executionResultHandler) {
+    public KafkaCommandResponseMessagesDispatcher(final MessageHandler executionResponseHandler) {
         this.messageHandler = BuiltInMessageHandler.Builder.create()
                 .configureTypedMessageHandlers()
-                .handleReplyMessageWith(executionResultHandler)
+                .handleReplyMessageWith(executionResponseHandler)
                 .continueWithParentBuilder()
                 .build();
     }
