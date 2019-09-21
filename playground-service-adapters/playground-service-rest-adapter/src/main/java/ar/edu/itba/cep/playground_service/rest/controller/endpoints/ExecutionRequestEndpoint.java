@@ -1,10 +1,11 @@
 package ar.edu.itba.cep.playground_service.rest.controller.endpoints;
 
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
-import ar.edu.itba.cep.playground_service.models.ExecutionResult;
-import ar.edu.itba.cep.playground_service.rest.controller.dtos.ExecutionRequestUploadDto;
-import ar.edu.itba.cep.playground_service.rest.controller.dtos.ExecutionResultDto;
-import ar.edu.itba.cep.playground_service.rest.controller.dtos.PendingExecutionResultDto;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
+import ar.edu.itba.cep.playground_service.rest.controller.dtos.CompletedExecutionResponseDto;
+import ar.edu.itba.cep.playground_service.rest.controller.dtos.ExecutionRequestDto;
+import ar.edu.itba.cep.playground_service.rest.controller.dtos.ExecutionResponseDto;
+import ar.edu.itba.cep.playground_service.rest.controller.dtos.PendingExecutionResponseDto;
 import ar.edu.itba.cep.playground_service.services.PlaygroundService;
 import com.bellotapps.webapps_commons.config.JerseyController;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import javax.ws.rs.core.UriInfo;
 
 /**
  * Rest Adapter of {@link PlaygroundService},
- * encapsulating {@link ExecutionRequest} and {@link ExecutionResult} management.
+ * encapsulating {@link PlaygroundServiceExecutionRequest} and {@link PlaygroundServiceExecutionResponse} management.
  */
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
@@ -32,7 +33,7 @@ public class ExecutionRequestEndpoint {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionRequestEndpoint.class);
     /**
-     * The {@link PlaygroundService} that will be used to manage {@link ExecutionRequest}s and {@link ExecutionResult}s.
+     * The {@link PlaygroundService} that will be used to manage {@link PlaygroundServiceExecutionRequest}s and {@link PlaygroundServiceExecutionResponse}s.
      */
     private final PlaygroundService playgroundService;
 
@@ -41,7 +42,7 @@ public class ExecutionRequestEndpoint {
      * Constructor.
      *
      * @param playgroundService The {@link PlaygroundService} that will be used to manage
-     *                          {@link ExecutionRequest}s and {@link ExecutionResult}s.
+     *                          {@link PlaygroundServiceExecutionRequest}s and {@link PlaygroundServiceExecutionResponse}s.
      */
     @Autowired
     public ExecutionRequestEndpoint(final PlaygroundService playgroundService) {
@@ -52,11 +53,13 @@ public class ExecutionRequestEndpoint {
     @POST
     @Path(Routes.EXECUTION_REQUESTS)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createExam(@Context final UriInfo uriInfo, @Valid final ExecutionRequestUploadDto dto) {
+    public Response createExam(@Context final UriInfo uriInfo, @Valid final ExecutionRequestDto dto) {
         LOGGER.debug("Creating new Execution Request");
         final var request = playgroundService.requestExecution(
                 dto.getCode(),
-                dto.getInputs(),
+                dto.getProgramArguments(),
+                dto.getStdin(),
+                dto.getCompilerFlags(),
                 dto.getTimeout(),
                 dto.getLanguage()
         );
@@ -67,12 +70,12 @@ public class ExecutionRequestEndpoint {
     }
 
     @GET
-    @Path(Routes.EXECUTION_RESULT)
-    public Response getExecutionResult(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id) {
-        LOGGER.debug("Getting result for request with id {}", id);
-        final var result = playgroundService.getResultFor(id)
-                .map(ExecutionResultDto::createFor)
-                .orElseGet(PendingExecutionResultDto::new);
-        return Response.ok(result).build();
+    @Path(Routes.EXECUTION_RESPONSE)
+    public Response getExecutionResponse(@PathParam("id") final long id) {
+        LOGGER.debug("Getting response for request with id {}", id);
+        final var response = playgroundService.getResponseFor(id)
+                .<ExecutionResponseDto>map(CompletedExecutionResponseDto::createFor)
+                .orElseGet(PendingExecutionResponseDto::getInstance);
+        return Response.ok(response).build();
     }
 }

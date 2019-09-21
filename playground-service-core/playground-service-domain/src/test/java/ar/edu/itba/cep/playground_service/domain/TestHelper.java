@@ -1,15 +1,12 @@
 package ar.edu.itba.cep.playground_service.domain;
 
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
-import ar.edu.itba.cep.playground_service.models.ExecutionResult;
-import ar.edu.itba.cep.playground_service.models.Language;
+import ar.edu.itba.cep.executor.models.Language;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import com.github.javafaker.Faker;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,7 +27,7 @@ class TestHelper {
     // ================================================================================================================
 
     /**
-     * @return A valid {@link ExecutionRequest} id.
+     * @return A valid {@link PlaygroundServiceExecutionRequest} id.
      */
     /* package */
     static long validExecutionRequestId() {
@@ -45,6 +42,14 @@ class TestHelper {
         return Faker.instance()
                 .lorem()
                 .paragraph();
+    }
+
+    /**
+     * @return A valid compiler flags {@link String}.
+     */
+    /* package */
+    static String validCompilerFlags() {
+        return Faker.instance().lorem().characters();
     }
 
     /**
@@ -70,24 +75,6 @@ class TestHelper {
     }
 
     /**
-     * @return A valid {@link ExecutionResult} id.
-     */
-    /* package */
-    static long validExecutionResultId() {
-        return Faker.instance().number().numberBetween(1L, Long.MAX_VALUE);
-    }
-
-    /**
-     * @return A valid exit code.
-     */
-    /* package */
-    static int validExitCode() {
-        return Faker.instance()
-                .number()
-                .numberBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
-    }
-
-    /**
      * Creates a valid {@link List} of {@link String} to be used as inputs or outputs (stdout/stderr).
      *
      * @return A valid {@link List} of inputs/outputs.
@@ -98,30 +85,6 @@ class TestHelper {
         return Faker.instance()
                 .lorem()
                 .words(amountOfWords);
-    }
-
-    /**
-     * @return A random compiled {@link Language}.
-     */
-    /* package */
-    static Language compiledLanguage() {
-        final var compiledLanguages = Arrays.stream(Language.values())
-                .filter(Language::isCompiled)
-                .collect(Collectors.toList());
-        final var index = (int) Faker.instance().number().numberBetween(0L, compiledLanguages.size());
-        return compiledLanguages.get(index);
-    }
-
-    /**
-     * @return A random non-compiled {@link Language}.
-     */
-    /* package */
-    static Language nonCompiledLanguage() {
-        final var nonCompiledLanguages = Arrays.stream(Language.values())
-                .filter(Predicate.not(Language::isCompiled))
-                .collect(Collectors.toList());
-        final var index = (int) Faker.instance().number().numberBetween(0L, nonCompiledLanguages.size());
-        return nonCompiledLanguages.get(index);
     }
 
 
@@ -172,5 +135,4 @@ class TestHelper {
     static Language invalidLanguage() {
         return null;
     }
-
 }

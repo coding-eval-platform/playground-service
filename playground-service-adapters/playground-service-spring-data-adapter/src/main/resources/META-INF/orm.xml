@@ -5,17 +5,39 @@
         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_2.xsd"
         version="2.2">
 
-    <package>ar.edu.itba.cep.playground_service.models</package>
-
-    <entity class="ExecutionRequest" access="FIELD">
+    <entity class="ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest" access="FIELD">
         <table name="execution_requests"/>
         <attributes>
             <id name="id">
                 <column name="id" nullable="false" updatable="false"/>
                 <generated-value strategy="IDENTITY"/>
             </id>
+            <embedded name="request"/>
+        </attributes>
+    </entity>
+
+    <entity class="ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse" access="FIELD">
+        <table name="execution_responses"/>
+        <attributes>
+            <id name="id">
+                <column name="id" nullable="false" updatable="false"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <one-to-one name="playgroundServiceExecutionRequest" fetch="LAZY" optional="false">
+                <join-column name="request_id"
+                             referenced-column-name="id" nullable="false" insertable="true" updatable="false"/>
+            </one-to-one>
+            <embedded name="response"/>
+        </attributes>
+    </entity>
+
+    <embeddable class="ar.edu.itba.cep.executor.models.ExecutionRequest">
+        <attributes>
             <basic name="code">
                 <column name="code" nullable="false" insertable="true" updatable="false"/>
+            </basic>
+            <basic name="compilerFlags">
+                <column name="compiler_flags" nullable="false" insertable="true" updatable="false"/>
             </basic>
             <basic name="timeout">
                 <column name="timeout" nullable="false" insertable="true" updatable="false"/>
@@ -24,81 +46,48 @@
                 <column name="language" nullable="false" insertable="true" updatable="true"/>
                 <enumerated>STRING</enumerated>
             </basic>
-            <element-collection name="inputs" fetch="LAZY">
+            <element-collection name="programArguments" fetch="LAZY">
+                <order-column name="program_argument_order" nullable="false" insertable="true" updatable="false"/>
+                <column name="program_argument" nullable="false" insertable="true" updatable="false"/>
+                <collection-table name="execution_requests_program_arguments">
+                    <join-column name="request_id"/>
+                </collection-table>
+            </element-collection>
+            <element-collection name="stdin" fetch="LAZY">
                 <order-column name="input_order" nullable="false" insertable="true" updatable="false"/>
                 <column name="input" nullable="false" insertable="true" updatable="false"/>
-                <collection-table name="execution_requests_inputs">
+                <collection-table name="execution_requests_stdin">
                     <join-column name="request_id"/>
                 </collection-table>
             </element-collection>
         </attributes>
-    </entity>
+    </embeddable>
 
-    <entity class="ExecutionResult" access="FIELD">
-        <table name="execution_results"/>
-        <inheritance strategy="JOINED"/>
+    <embeddable class="ar.edu.itba.cep.executor.models.ExecutionResponse">
         <attributes>
-            <id name="id">
-                <column name="id" nullable="false" updatable="false"/>
-                <generated-value strategy="IDENTITY"/>
-            </id>
-            <one-to-one name="executionRequest" fetch="LAZY" optional="false">
-                <join-column name="request_id"
-                             referenced-column-name="id" nullable="false" insertable="true" updatable="false"/>
-            </one-to-one>
-        </attributes>
-    </entity>
-
-    <entity class="FinishedExecutionResult" access="FIELD">
-        <table name="finished_execution_results"/>
-        <primary-key-join-column name="result_id"/>
-        <attributes>
+            <basic name="result">
+                <column name="result" nullable="false" insertable="true" updatable="true"/>
+                <enumerated>STRING</enumerated>
+            </basic>
             <basic name="exitCode">
                 <column name="exit_code" nullable="false" insertable="true" updatable="false"/>
             </basic>
-            <element-collection name="stdout" fetch="EAGER">
+
+            <element-collection name="stdout" fetch="LAZY">
                 <order-column name="output_order" nullable="false" insertable="true" updatable="false"/>
                 <column name="output" nullable="false" insertable="true" updatable="false"/>
-                <collection-table name="finished_execution_results_outputs">
+                <collection-table name="execution_response_outputs">
                     <join-column name="result_id"/>
                 </collection-table>
             </element-collection>
-            <element-collection name="stderr" fetch="EAGER">
+
+            <element-collection name="stderr" fetch="LAZY">
                 <order-column name="error_output_order" nullable="false" insertable="true" updatable="false"/>
                 <column name="error_output" nullable="false" insertable="true" updatable="false"/>
-                <collection-table name="finished_execution_results_error_outputs">
+                <collection-table name="execution_response_error_outputs">
                     <join-column name="result_id"/>
                 </collection-table>
             </element-collection>
         </attributes>
-    </entity>
-
-    <entity class="TimedOutExecutionResult" access="FIELD">
-        <table name="timed_out_execution_result"/>
-        <primary-key-join-column name="result_id"/>
-    </entity>
-
-    <entity class="CompileErrorExecutionResult" access="FIELD">
-        <table name="compile_error_execution_results"/>
-        <primary-key-join-column name="result_id"/>
-        <attributes>
-            <element-collection name="compilerErrors" fetch="EAGER">
-                <order-column name="error_order" nullable="false" insertable="true" updatable="false"/>
-                <column name="error" nullable="false" insertable="true" updatable="false"/>
-                <collection-table name="compile_error_execution_results_errors">
-                    <join-column name="result_id"/>
-                </collection-table>
-            </element-collection>
-        </attributes>
-    </entity>
-
-    <entity class="InitializationErrorExecutionResult" access="FIELD">
-        <table name="initialization_error_execution_result"/>
-        <primary-key-join-column name="result_id"/>
-    </entity>
-
-    <entity class="UnknownErrorExecutionResult" access="FIELD">
-        <table name="unknown_error_execution_result"/>
-        <primary-key-join-column name="result_id"/>
-    </entity>
+    </embeddable>
 </entity-mappings>

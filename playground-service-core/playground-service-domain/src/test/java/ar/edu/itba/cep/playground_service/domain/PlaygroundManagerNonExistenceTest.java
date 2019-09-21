@@ -1,19 +1,22 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.models.ExecutionResponse;
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.models.*;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
-import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
+import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
 import com.bellotapps.webapps_commons.exceptions.NoSuchEntityException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Test class for {@link PlaygroundManager}, containing tests for the non-existence condition
@@ -25,16 +28,16 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
     /**
      * Constructor.
      *
-     * @param executionRequestRepository A mocked {@link ExecutionRequestRepository} passed to super class.
-     * @param executionResultRepository  A mocked {@link ExecutionResultRepository} passed to super class.
-     * @param executorServiceProxy       A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
+     * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
      */
     PlaygroundManagerNonExistenceTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
-            @Mock(name = "resultRepository") final ExecutionResultRepository executionResultRepository,
+            @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
             @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
         super(executionRequestRepository,
-                executionResultRepository,
+                executionResponseRepository,
                 executorServiceProxy);
     }
 
@@ -44,104 +47,49 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
     // ================================================================================================================
 
     /**
-     * Tests that searching for an {@link ExecutionResult} that does not exist does not fail,
+     * Tests that searching for a {@link PlaygroundServiceExecutionResponse} that does not exist does not fail,
      * and returns an empty {@link Optional}.
      */
     @Test
-    void testSearchForExecutionResultThatDoesNotExist(
-            @Mock(name = "request") final ExecutionRequest mockedRequest) {
+    void testSearchForExecutionResponseThatDoesNotExist(
+            @Mock(name = "request") final PlaygroundServiceExecutionRequest mockedRequest) {
         final var requestId = TestHelper.validExecutionRequestId();
-        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
-        Mockito.when(executionResultRepository.getResultFor(mockedRequest)).thenReturn(Optional.empty());
+        when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(mockedRequest));
+        when(executionResponseRepository.getResponseFor(mockedRequest)).thenReturn(Optional.empty());
         Assertions.assertTrue(
-                playgroundManager.getResultFor(requestId).isEmpty(),
-                "Searching for an Execution Result that does not exist does not return an empty optional."
+                playgroundManager.getResponseFor(requestId).isEmpty(),
+                "Searching for an Execution Response that does not exist does not return an empty optional."
         );
-        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
-        Mockito.verify(executionResultRepository, Mockito.only()).getResultFor(mockedRequest);
-        Mockito.verifyZeroInteractions(executorServiceProxy);
+        verify(executionRequestRepository, only()).findById(requestId);
+        verify(executionResponseRepository, only()).getResponseFor(mockedRequest);
+        verifyZeroInteractions(executorServiceProxy);
     }
 
     /**
-     * Tests that searching for an {@link ExecutionResult} of an {@link ExecutionRequest} that does not exist
-     * throws a {@link NoSuchEntityException}.
+     * Tests that searching for a {@link PlaygroundServiceExecutionResponse}
+     * of a {@link PlaygroundServiceExecutionRequest} that does not exist throws a {@link NoSuchEntityException}.
      */
     @Test
-    void testSearchForExecutionResultOfExecutionRequestThatDoesNotExist() {
+    void testSearchForExecutionResponseOfExecutionRequestThatDoesNotExist() {
         abstractNonExistenceRequestTest(
-                PlaygroundManager::getResultFor,
-                "Searching for an Execution Result of an Execution Request that does not exist" +
-                        " does not throw a NoSuchEntityException."
-        );
-    }
-
-
-    /**
-     * Tests that saving a {@link FinishedExecutionResult} for an {@link ExecutionRequest} that does not exist
-     * throws a {@link NoSuchEntityException}.
-     */
-    @Test
-    void testSaveFinishedExecutionResultForExecutionRequestThatDoesNotExist() {
-        final var exitCode = TestHelper.validExitCode();
-        final var stdout = TestHelper.validInputOutputList();
-        final var stderr = TestHelper.validInputOutputList();
-        abstractNonExistenceRequestTest(
-                (manager, id) -> manager.receiveFinished(exitCode, stdout, stderr, id),
-                "Trying to save a Finished Execution Result for an Execution Request that does not exist" +
+                PlaygroundManager::getResponseFor,
+                "Searching for an Execution Response of an Execution Request that does not exist" +
                         " does not throw a NoSuchEntityException."
         );
     }
 
     /**
-     * Tests that saving a {@link TimedOutExecutionResult} for an {@link ExecutionRequest} that does not exist
-     * throws a {@link NoSuchEntityException}.
+     * Tests that processing an {@link ExecutionResponse} for a {@link PlaygroundServiceExecutionRequest}
+     * that does not exist throws a {@link NoSuchEntityException}.
+     *
+     * @param response A mocked {@link ExecutionResponse} (the one being tried to process).
      */
     @Test
-    void testSaveTimedOutExecutionResultForExecutionRequestThatDoesNotExist() {
+    void testProcessResponseForNonExistenceRequest(@Mock(name = "response") final ExecutionResponse response) {
         abstractNonExistenceRequestTest(
-                PlaygroundManager::receiveTimedOut,
-                "Trying to save a Timed Out Execution Result for an Execution Request that does not exist" +
+                (manager, id) -> manager.processResponse(id, response),
+                "Trying to process an execution response for an execution request that does not exist" +
                         " does not throw a NoSuchEntityException."
-        );
-    }
-
-    /**
-     * Tests that saving a {@link CompileErrorExecutionResult} for an {@link ExecutionRequest} that does not exist
-     * throws a {@link NoSuchEntityException}.
-     */
-    @Test
-    void testSaveCompileErrorExecutionResultForExecutionRequestThatDoesNotExist() {
-        final var compilerErrors = TestHelper.validInputOutputList();
-        abstractNonExistenceRequestTest(
-                (manager, id) -> manager.receiveCompileError(compilerErrors, id),
-                "Trying to save a Compile Error Execution Result for an Execution Request" +
-                        " that does not exist does not throw a NoSuchEntityException."
-        );
-    }
-
-    /**
-     * Tests that saving an {@link InitializationErrorExecutionResult}
-     * for an {@link ExecutionRequest} that does not exist throws a {@link NoSuchEntityException}.
-     */
-    @Test
-    void testSaveInitializationErrorExecutionResultForExecutionRequestThatDoesNotExist() {
-        abstractNonExistenceRequestTest(
-                PlaygroundManager::receiveInitializationError,
-                "Trying to save an Initialization Error Execution Result for an Execution Request" +
-                        " that does not exist does not throw a NoSuchEntityException."
-        );
-    }
-
-    /**
-     * Tests that saving a {@link UnknownErrorExecutionResult} for an {@link ExecutionRequest} that does not exist
-     * throws a {@link NoSuchEntityException}.
-     */
-    @Test
-    void testSaveUnknownErrorExecutionResultForExecutionRequestThatDoesNotExist() {
-        abstractNonExistenceRequestTest(
-                PlaygroundManager::receiveUnknownError,
-                "Trying to save an Unknown Error Execution Result for an Execution Request" +
-                        " that does not exist does not throw a NoSuchEntityException."
         );
     }
 
@@ -151,7 +99,8 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
     // ================================================================================================================
 
     /**
-     * An abstract test for {@link PlaygroundManager} operations in which the {@link ExecutionRequest} does not exist.
+     * An abstract test for {@link PlaygroundManager} operations
+     * in which the {@link PlaygroundServiceExecutionRequest} does not exist.
      *
      * @param managerOperation The {@link PlaygroundManager} operation.
      * @param message          The assertion message to be displayed in case the test fails.
@@ -160,14 +109,14 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
             final BiConsumer<PlaygroundManager, Long> managerOperation,
             final String message) {
         final var requestId = TestHelper.validExecutionRequestId();
-        Mockito.when(executionRequestRepository.findById(requestId)).thenReturn(Optional.empty());
+        when(executionRequestRepository.findById(requestId)).thenReturn(Optional.empty());
         Assertions.assertThrows(
                 NoSuchEntityException.class,
                 () -> managerOperation.accept(playgroundManager, requestId),
                 message
         );
-        Mockito.verify(executionRequestRepository, Mockito.only()).findById(requestId);
-        Mockito.verifyZeroInteractions(executionResultRepository);
-        Mockito.verifyZeroInteractions(executorServiceProxy);
+        verify(executionRequestRepository, only()).findById(requestId);
+        verifyZeroInteractions(executionResponseRepository);
+        verifyZeroInteractions(executorServiceProxy);
     }
 }

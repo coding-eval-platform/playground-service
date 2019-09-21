@@ -1,8 +1,8 @@
 package ar.edu.itba.cep.playground_service.commands.executor_service;
 
+import ar.edu.itba.cep.executor.dtos.ExecutionRequestDto;
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
-import ar.edu.itba.cep.playground_service.commands.executor_service.dto.ExecutionRequestDto;
-import ar.edu.itba.cep.playground_service.models.ExecutionRequest;
+import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import com.bellotapps.the_messenger.commons.Message;
 import com.bellotapps.the_messenger.producer.MessageBuilderFactory;
 import com.bellotapps.the_messenger.producer.MessageProducer;
@@ -47,11 +47,11 @@ public class ExecutorServiceKafkaCommandMessageProxy implements ExecutorServiceC
 
 
     @Override
-    public void requestExecution(final ExecutionRequest executionRequest) {
+    public void requestExecution(final PlaygroundServiceExecutionRequest playgroundServiceExecutionRequest) {
         final var message = executionRequestDtoMessageBuilderFactory.commandMessage("requestExecution")
-                .withHeader(Constants.REQUEST_ID, Long.toString(executionRequest.getId()))
+                .withHeader(Constants.REQUEST_ID, Long.toString(playgroundServiceExecutionRequest.getId()))
                 .copyHeaders(Constants.REQUEST_ID)
-                .withPayload(new ExecutionRequestDto(executionRequest))
+                .withPayload(ExecutionRequestDto.buildFromRequest(playgroundServiceExecutionRequest.getRequest()))
                 .build();
         messageProducer.send(message, Constants.EXECUTOR_SERVICE_COMMANDS_CHANNEL);
     }

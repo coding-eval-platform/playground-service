@@ -3,7 +3,7 @@ package ar.edu.itba.cep.playground_service.domain;
 
 import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
-import ar.edu.itba.cep.playground_service.repositories.ExecutionResultRepository;
+import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
 
 /**
  * A base Test class for {@link PlaygroundManager}.
@@ -20,10 +20,10 @@ abstract class AbstractPlaygroundManagerTest {
      */
     /* package */ final ExecutionRequestRepository executionRequestRepository;
     /**
-     * An {@link ExecutionResultRepository} that is injected to the {@link PlaygroundManager}.
+     * An {@link ExecutionResponseRepository} that is injected to the {@link PlaygroundManager}.
      * This reference is saved in order to configure its behaviour in each test.
      */
-    /* package */ final ExecutionResultRepository executionResultRepository;
+    /* package */ final ExecutionResponseRepository executionResponseRepository;
 
     /**
      * An {@link ExecutorServiceCommandMessageProxy} that is injected to the {@link PlaygroundManager}.
@@ -49,23 +49,23 @@ abstract class AbstractPlaygroundManagerTest {
     /**
      * Constructor.
      *
-     * @param executionRequestRepository An {@link ExecutionRequestRepository}
-     *                                   that is injected to the {@link PlaygroundManager}.
-     * @param executionResultRepository  An {@link ExecutionResultRepository}
-     *                                   that is injected to the {@link PlaygroundManager}.
-     * @param executorServiceProxy       An {@link ExecutorServiceCommandMessageProxy}
-     *                                   that is injected to the {@link PlaygroundManager}.
+     * @param executionRequestRepository  An {@link ExecutionRequestRepository}
+     *                                    that is injected to the {@link PlaygroundManager}.
+     * @param executionResponseRepository An {@link ExecutionResponseRepository}
+     *                                    that is injected to the {@link PlaygroundManager}.
+     * @param executorServiceProxy        An {@link ExecutorServiceCommandMessageProxy}
+     *                                    that is injected to the {@link PlaygroundManager}.
      */
     AbstractPlaygroundManagerTest(
             final ExecutionRequestRepository executionRequestRepository,
-            final ExecutionResultRepository executionResultRepository,
+            final ExecutionResponseRepository executionResponseRepository,
             final ExecutorServiceCommandMessageProxy executorServiceProxy) {
         this.executionRequestRepository = executionRequestRepository;
-        this.executionResultRepository = executionResultRepository;
+        this.executionResponseRepository = executionResponseRepository;
         this.executorServiceProxy = executorServiceProxy;
         this.playgroundManager = new PlaygroundManager(
                 executionRequestRepository,
-                executionResultRepository,
+                executionResponseRepository,
                 executorServiceProxy
         );
     }
