@@ -1,7 +1,7 @@
 package ar.edu.itba.cep.playground_service.rest.controller.dtos;
 
 /**
- * Created by Juan Marcos Bellini on 2019-09-17.
+ * Interface used to mark objects that can be returned by the API as an execution response.
  */
 public interface ExecutionResponseDto {
 }
