@@ -30,5 +30,16 @@
             <groupId>com.bellotapps.webapps</groupId>
             <artifactId>webapps-commons-exceptions</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>ar.edu.itba.cep</groupId>
+            <artifactId>commons-executor-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

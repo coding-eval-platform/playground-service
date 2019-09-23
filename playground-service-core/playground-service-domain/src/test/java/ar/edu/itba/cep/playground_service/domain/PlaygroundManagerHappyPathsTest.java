@@ -1,7 +1,8 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.api.ExecutionRequestSender;
 import ar.edu.itba.cep.executor.models.ExecutionResponse;
-import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
@@ -29,12 +30,12 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
      *
      * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
      * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
-     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutionRequestSender} passed to super class.
      */
     PlaygroundManagerHappyPathsTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
             @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
-            @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
+            @Mock(name = "executorServiceProxy") final ExecutionRequestSender<ExecutionRequestId> executorServiceProxy) {
         super(executionRequestRepository,
                 executionResponseRepository,
                 executorServiceProxy);
@@ -102,7 +103,10 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
         );
         verify(executionRequestRepository, only()).save(any(PlaygroundServiceExecutionRequest.class));
         verifyZeroInteractions(executionResponseRepository);
-        verify(executorServiceProxy, only()).requestExecution(playgroundServiceExecutionRequest);
+        verify(executorServiceProxy, only()).requestExecution(
+                playgroundServiceExecutionRequest.getRequest(),
+                ExecutionRequestId.create(playgroundServiceExecutionRequest.getId())
+        );
     }
 
     /**
@@ -155,7 +159,7 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
         when(executionResponseRepository.existsFor(request)).thenReturn(false);
         when(executionResponseRepository.save(any(PlaygroundServiceExecutionResponse.class))).then(i -> i.getArgument(0));
 
-        playgroundManager.processResponse(requestId, response);
+        playgroundManager.processExecutionResponse(response, ExecutionRequestId.create(requestId));
 
         verify(executionRequestRepository, only()).findById(requestId);
         verify(executionResponseRepository, times(1)).existsFor(request);

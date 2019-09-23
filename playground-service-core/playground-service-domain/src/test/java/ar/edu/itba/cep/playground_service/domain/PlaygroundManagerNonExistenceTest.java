@@ -1,7 +1,8 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.api.ExecutionRequestSender;
 import ar.edu.itba.cep.executor.models.ExecutionResponse;
-import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
@@ -30,12 +31,12 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
      *
      * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
      * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
-     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutionRequestSender} passed to super class.
      */
     PlaygroundManagerNonExistenceTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
             @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
-            @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
+            @Mock(name = "executorServiceProxy") final ExecutionRequestSender<ExecutionRequestId> executorServiceProxy) {
         super(executionRequestRepository,
                 executionResponseRepository,
                 executorServiceProxy);
@@ -87,7 +88,7 @@ class PlaygroundManagerNonExistenceTest extends AbstractPlaygroundManagerTest {
     @Test
     void testProcessResponseForNonExistenceRequest(@Mock(name = "response") final ExecutionResponse response) {
         abstractNonExistenceRequestTest(
-                (manager, id) -> manager.processResponse(id, response),
+                (manager, id) -> manager.processExecutionResponse(response, ExecutionRequestId.create(id)),
                 "Trying to process an execution response for an execution request that does not exist" +
                         " does not throw a NoSuchEntityException."
         );
