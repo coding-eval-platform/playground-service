@@ -1,7 +1,8 @@
 package ar.edu.itba.cep.playground_service.domain;
 
 
-import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
+import ar.edu.itba.cep.executor.api.ExecutionRequestSender;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
 
@@ -26,10 +27,10 @@ abstract class AbstractPlaygroundManagerTest {
     /* package */ final ExecutionResponseRepository executionResponseRepository;
 
     /**
-     * An {@link ExecutorServiceCommandMessageProxy} that is injected to the {@link PlaygroundManager}.
+     * An {@link ExecutionRequestSender} that is injected to the {@link PlaygroundManager}.
      * This reference is saved in order to configure its behaviour in each test.
      */
-    /* package */ final ExecutorServiceCommandMessageProxy executorServiceProxy;
+    /* package */ final ExecutionRequestSender<ExecutionRequestId> executorServiceProxy;
 
 
     // ================================================================================================================
@@ -53,13 +54,13 @@ abstract class AbstractPlaygroundManagerTest {
      *                                    that is injected to the {@link PlaygroundManager}.
      * @param executionResponseRepository An {@link ExecutionResponseRepository}
      *                                    that is injected to the {@link PlaygroundManager}.
-     * @param executorServiceProxy        An {@link ExecutorServiceCommandMessageProxy}
+     * @param executorServiceProxy        An {@link ExecutionRequestSender}
      *                                    that is injected to the {@link PlaygroundManager}.
      */
     AbstractPlaygroundManagerTest(
             final ExecutionRequestRepository executionRequestRepository,
             final ExecutionResponseRepository executionResponseRepository,
-            final ExecutorServiceCommandMessageProxy executorServiceProxy) {
+            final ExecutionRequestSender<ExecutionRequestId> executorServiceProxy) {
         this.executionRequestRepository = executionRequestRepository;
         this.executionResponseRepository = executionResponseRepository;
         this.executorServiceProxy = executorServiceProxy;

@@ -1,10 +1,11 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.api.ExecutionRequestSender;
+import ar.edu.itba.cep.executor.api.ExecutionResponseHandler;
 import ar.edu.itba.cep.executor.models.ExecutionRequest;
 import ar.edu.itba.cep.executor.models.ExecutionResponse;
 import ar.edu.itba.cep.executor.models.Language;
-import ar.edu.itba.cep.playground_service.commands.ExecutionResponseProcessor;
-import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
@@ -25,7 +26,7 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
-public class PlaygroundManager implements PlaygroundService, ExecutionResponseProcessor {
+public class PlaygroundManager implements PlaygroundService, ExecutionResponseHandler<ExecutionRequestId> {
 
     /**
      * An {@link ExecutionRequestRepository}.
@@ -38,7 +39,7 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResponsePr
     /**
      * A proxy for the Executor Service.
      */
-    private final ExecutorServiceCommandMessageProxy executorService;
+    private final ExecutionRequestSender<ExecutionRequestId> executorService;
 
 
     // ================================================================================================================
@@ -65,7 +66,7 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResponsePr
                 )
         );
         final var savedRequest = executionRequestRepository.save(request);
-        executorService.requestExecution(savedRequest);
+        executorService.requestExecution(savedRequest.getRequest(), ExecutionRequestId.create(savedRequest.getId()));
         return savedRequest;
     }
 
@@ -92,10 +93,13 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResponsePr
 
     @Override
     @Transactional
-    public void processResponse(final long executionRequestId, final ExecutionResponse response)
+    public void processExecutionResponse(
+            final ExecutionResponse response,
+            final ExecutionRequestId executionRequestIdData)
             throws IllegalArgumentException {
         Assert.notNull(response, "The response must not be null");
-        final var request = loadExecutionRequest(executionRequestId);
+        Assert.notNull(executionRequestIdData, "The id data must not be null");
+        final var request = loadExecutionRequest(executionRequestIdData.getRequestId());
         if (executionResponseRepository.existsFor(request)) {
             return; // Avoid adding a new response for the given request (they should be the same though).
         }

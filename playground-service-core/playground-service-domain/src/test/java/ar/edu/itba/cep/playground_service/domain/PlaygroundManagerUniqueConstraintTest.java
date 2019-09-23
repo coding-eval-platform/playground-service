@@ -1,7 +1,8 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.api.ExecutionRequestSender;
 import ar.edu.itba.cep.executor.models.ExecutionResponse;
-import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionResponse;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
@@ -27,12 +28,12 @@ class PlaygroundManagerUniqueConstraintTest extends AbstractPlaygroundManagerTes
      *
      * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
      * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
-     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutionRequestSender} passed to super class.
      */
     PlaygroundManagerUniqueConstraintTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
             @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
-            @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
+            @Mock(name = "executorServiceProxy") final ExecutionRequestSender<ExecutionRequestId> executorServiceProxy) {
         super(executionRequestRepository,
                 executionResponseRepository,
                 executorServiceProxy);
@@ -46,7 +47,7 @@ class PlaygroundManagerUniqueConstraintTest extends AbstractPlaygroundManagerTes
     /**
      * Tests that another {@link PlaygroundServiceExecutionResponse} is not created if already exists
      * for a {@link PlaygroundServiceExecutionRequest} in the
-     * {@link PlaygroundManager#processResponse(long, ExecutionResponse)} method.
+     * {@link PlaygroundManager#processExecutionResponse(ExecutionResponse, ExecutionRequestId)} method.
      *
      * @param request  A mocked {@link PlaygroundServiceExecutionRequest}
      *                 (the one owning the {@link PlaygroundServiceExecutionResponse} that already exists).
@@ -61,7 +62,7 @@ class PlaygroundManagerUniqueConstraintTest extends AbstractPlaygroundManagerTes
         when(executionRequestRepository.findById(requestId)).thenReturn(Optional.of(request));
         when(executionResponseRepository.existsFor(request)).thenReturn(true);
 
-        playgroundManager.processResponse(requestId, response);
+        playgroundManager.processExecutionResponse(response, ExecutionRequestId.create(requestId));
 
         verify(executionRequestRepository, only()).findById(requestId);
         verify(executionResponseRepository, only()).existsFor(request);

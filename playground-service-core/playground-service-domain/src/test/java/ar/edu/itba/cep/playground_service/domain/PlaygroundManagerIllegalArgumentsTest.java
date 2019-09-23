@@ -1,7 +1,8 @@
 package ar.edu.itba.cep.playground_service.domain;
 
+import ar.edu.itba.cep.executor.api.ExecutionRequestSender;
 import ar.edu.itba.cep.executor.models.ExecutionResponse;
-import ar.edu.itba.cep.playground_service.commands.ExecutorServiceCommandMessageProxy;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import ar.edu.itba.cep.playground_service.models.PlaygroundServiceExecutionRequest;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionRequestRepository;
 import ar.edu.itba.cep.playground_service.repositories.ExecutionResponseRepository;
@@ -25,12 +26,12 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
      *
      * @param executionRequestRepository  A mocked {@link ExecutionRequestRepository} passed to super class.
      * @param executionResponseRepository A mocked {@link ExecutionResponseRepository} passed to super class.
-     * @param executorServiceProxy        A mocked {@link ExecutorServiceCommandMessageProxy} passed to super class.
+     * @param executorServiceProxy        A mocked {@link ExecutionRequestSender} passed to super class.
      */
     PlaygroundManagerIllegalArgumentsTest(
             @Mock(name = "requestRepository") final ExecutionRequestRepository executionRequestRepository,
             @Mock(name = "responseRepository") final ExecutionResponseRepository executionResponseRepository,
-            @Mock(name = "executorServiceProxy") final ExecutorServiceCommandMessageProxy executorServiceProxy) {
+            @Mock(name = "executorServiceProxy") final ExecutionRequestSender<ExecutionRequestId> executorServiceProxy) {
         super(executionRequestRepository,
                 executionResponseRepository,
                 executorServiceProxy);
@@ -64,15 +65,15 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
 
     /**
      * Tests that an {@link IllegalArgumentException} is thrown when invoking the
-     * {@link PlaygroundManager#processResponse(long, ExecutionResponse)} with invalid arguments.
+     * {@link PlaygroundManager#processExecutionResponse(ExecutionResponse, ExecutionRequestId)} with invalid arguments.
      */
     @Test
     void testProcessResponseWithNullResponse() {
         Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> playgroundManager.processResponse(
-                        TestHelper.validExecutionRequestId(),
-                        null
+                () -> playgroundManager.processExecutionResponse(
+                        null,
+                        ExecutionRequestId.create(TestHelper.validExecutionRequestId())
                 ),
                 "Using invalid arguments when invoking the process response method" +
                         " did not throw an IllegalArgumentException."

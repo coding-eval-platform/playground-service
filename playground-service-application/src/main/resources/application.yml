@@ -66,6 +66,13 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
 
+executor-service:
+  command-messages:
+    sender: "PlaygroundService"
+    request-execution:
+      reply-channel: "PlaygroundService-Command-Replies"
+
+
 ---
 # Configuration for Development Environment
 

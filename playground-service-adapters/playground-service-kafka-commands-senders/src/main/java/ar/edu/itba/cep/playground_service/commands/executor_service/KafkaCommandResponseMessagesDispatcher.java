@@ -1,9 +1,10 @@
 package ar.edu.itba.cep.playground_service.commands.executor_service;
 
+import ar.edu.itba.cep.executor.client.ExecutionResponseDispatcher;
+import ar.edu.itba.cep.playground_service.commands.ExecutionRequestId;
 import com.bellotapps.the_messenger.commons.Message;
-import com.bellotapps.the_messenger.consumer.BuiltInMessageHandler;
 import com.bellotapps.the_messenger.consumer.MessageHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -11,21 +12,13 @@ import org.springframework.stereotype.Component;
  * Kafka command reply messages dispatcher.
  */
 @Component
+@AllArgsConstructor
 public class KafkaCommandResponseMessagesDispatcher {
 
     /**
      * The {@link MessageHandler} in charge of dispatching actions based on received messages.
      */
-    private final MessageHandler messageHandler;
-
-    @Autowired
-    public KafkaCommandResponseMessagesDispatcher(final MessageHandler executionResponseHandler) {
-        this.messageHandler = BuiltInMessageHandler.Builder.create()
-                .configureTypedMessageHandlers()
-                .handleReplyMessageWith(executionResponseHandler)
-                .continueWithParentBuilder()
-                .build();
-    }
+    private final ExecutionResponseDispatcher<ExecutionRequestId> messageDispatcher;
 
 
     /**
@@ -35,11 +28,11 @@ public class KafkaCommandResponseMessagesDispatcher {
      */
     @KafkaListener(
             topics = {
-                    Constants.REPLY_CHANNEL,
+                    "${executor-service.command-messages.request-execution.reply-channel}",
             },
             autoStartup = "true"
     )
     public void dispatch(final Message message) {
-        this.messageHandler.handle(message);
+        this.messageDispatcher.dispatch(message);
     }
 }
