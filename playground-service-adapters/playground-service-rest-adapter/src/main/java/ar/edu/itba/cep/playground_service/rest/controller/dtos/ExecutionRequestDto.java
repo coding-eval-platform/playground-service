@@ -61,6 +61,8 @@ public class ExecutionRequestDto {
      *
      * @param code             The code to be run.
      * @param programArguments The input arguments to be passed to the execution.
+     * @param stdin            The elements to be passed to the standard input.
+     * @param compilerFlags    The compiler flags. Should be null if the {@link #language} is compiled.
      * @param timeout          The time given to execute, in milliseconds.
      * @param language         The programming language in which the {@code code} is written.
      * @throws IllegalArgumentException If any argument is not valid.
