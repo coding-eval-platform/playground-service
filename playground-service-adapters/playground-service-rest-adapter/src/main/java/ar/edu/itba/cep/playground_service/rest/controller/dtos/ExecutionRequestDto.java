@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
+import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 
 /**
@@ -50,6 +51,10 @@ public class ExecutionRequestDto {
     @Positive(message = "The timeout must be positive", payload = IllegalValue.class)
     private final Long timeout;
     /**
+     * The name of the file in which the "main" will be placed (i.e the name of the file where the code will be copied).
+     */
+    private final String mainFileName;
+    /**
      * The programming language in which the {@link #code} is written.
      */
     @NotNull(message = "The language is missing.", payload = MissingValue.class)
@@ -74,6 +79,7 @@ public class ExecutionRequestDto {
             @JsonProperty(value = "stdin", access = WRITE_ONLY) final List<String> stdin,
             @JsonProperty(value = "compilerFlags", access = WRITE_ONLY) final String compilerFlags,
             @JsonProperty(value = "timeout", access = WRITE_ONLY) final Long timeout,
+            @JsonProperty(value = "mainFileName", access = WRITE_ONLY) final String mainFileName,
             @JsonProperty(value = "language", access = WRITE_ONLY) final Language language)
             throws IllegalArgumentException {
         this.code = code;
@@ -81,6 +87,7 @@ public class ExecutionRequestDto {
         this.stdin = stdin;
         this.compilerFlags = compilerFlags;
         this.timeout = timeout;
+        this.mainFileName = mainFileName;
         this.language = language;
     }
 }

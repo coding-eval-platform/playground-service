@@ -23,6 +23,8 @@ public interface PlaygroundService {
      * @param stdin            The elements to be passed to the standard input.
      * @param compilerFlags    The compiler flags. Should null if the {@code language} is compiled.
      * @param timeout          The timeout for the execution.
+     * @param mainFileName     The name of the file in which the "main" will be placed
+     *                         (i.e the name of the file where the code will be copied).
      * @param language         The language in which the {@code code} is written.
      * @return The created {@link PlaygroundServiceExecutionRequest}.
      */
@@ -32,6 +34,7 @@ public interface PlaygroundService {
             final List<String> stdin,
             final String compilerFlags,
             final Long timeout,
+            final String mainFileName,
             final Language language
     );
 

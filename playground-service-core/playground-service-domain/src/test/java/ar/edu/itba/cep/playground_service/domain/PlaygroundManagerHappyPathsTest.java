@@ -57,6 +57,7 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
         final var stdin = TestHelper.validInputOutputList();
         final var compilerFlags = TestHelper.validCompilerFlags();
         final var timeout = TestHelper.validTimeout();
+        final var mainFileName = TestHelper.validMainFileName();
         final var language = TestHelper.validLanguage();
 
         when(executionRequestRepository.save(any(PlaygroundServiceExecutionRequest.class))).then(i -> i.getArgument(0));
@@ -66,6 +67,7 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
                 stdin,
                 compilerFlags,
                 timeout,
+                mainFileName,
                 language
         );
         final var commonsRequest = playgroundServiceExecutionRequest.getRequest();
@@ -94,6 +96,11 @@ class PlaygroundManagerHappyPathsTest extends AbstractPlaygroundManagerTest {
                         timeout,
                         commonsRequest.getTimeout(),
                         "There is a mismatch in the timeout"
+                ),
+                () -> Assertions.assertEquals(
+                        mainFileName,
+                        commonsRequest.getMainFileName(),
+                        "There is a mismatch in the main file name"
                 ),
                 () -> Assertions.assertEquals(
                         language,

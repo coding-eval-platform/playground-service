@@ -61,6 +61,7 @@ public class ExecutionRequestEndpoint {
                 dto.getStdin(),
                 dto.getCompilerFlags(),
                 dto.getTimeout(),
+                dto.getMainFileName(),
                 dto.getLanguage()
         );
         final var location = uriInfo.getAbsolutePathBuilder()

@@ -54,6 +54,7 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResponseHa
             final List<String> stdin,
             final String compilerFlags,
             final Long timeout,
+            final String mainFileName,
             final Language language) {
         final var request = PlaygroundServiceExecutionRequest.fromCommonsRequest(
                 new ExecutionRequest(
@@ -62,6 +63,7 @@ public class PlaygroundManager implements PlaygroundService, ExecutionResponseHa
                         stdin,
                         compilerFlags,
                         timeout,
+                        mainFileName,
                         language
                 )
         );

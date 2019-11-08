@@ -7,6 +7,7 @@ import com.github.javafaker.Faker;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,6 +63,14 @@ class TestHelper {
         validValues.add(Faker.instance().number().numberBetween(1, Long.MAX_VALUE));
         final var index = (int) Faker.instance().number().numberBetween(0L, validValues.size());
         return validValues.get(index);
+    }
+
+    /**
+     * @return A valid main file name.
+     */
+    /* package */
+    static String validMainFileName() {
+        return new Random().nextBoolean() ? null : Faker.instance().file().fileName();
     }
 
     /**

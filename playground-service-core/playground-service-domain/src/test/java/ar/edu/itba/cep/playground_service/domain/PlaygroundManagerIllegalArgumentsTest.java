@@ -52,6 +52,7 @@ class PlaygroundManagerIllegalArgumentsTest extends AbstractPlaygroundManagerTes
                         TestHelper.invalidInputOutputList(),
                         TestHelper.validCompilerFlags(),
                         TestHelper.nonPositiveTimeout(),
+                        TestHelper.validMainFileName(), // There is no invalid value for this
                         TestHelper.invalidLanguage()
 
                 ),
