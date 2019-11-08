@@ -37,13 +37,13 @@
                 <column name="code" nullable="false" insertable="true" updatable="false"/>
             </basic>
             <basic name="compilerFlags">
-                <column name="compiler_flags" nullable="false" insertable="true" updatable="false"/>
+                <column name="compiler_flags" nullable="true" insertable="true" updatable="false"/>
             </basic>
             <basic name="timeout">
                 <column name="timeout" nullable="false" insertable="true" updatable="false"/>
             </basic>
             <basic name="mainFileName">
-                <column name="main_file_name" nullable="false" insertable="true" updatable="false"/>
+                <column name="main_file_name" nullable="true" insertable="true" updatable="false"/>
             </basic>
             <basic name="language">
                 <column name="language" nullable="false" insertable="true" updatable="true"/>
