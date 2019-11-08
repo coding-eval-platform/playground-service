@@ -14,7 +14,6 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
-import static com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY;
 import static com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY;
 
 /**
@@ -69,6 +68,8 @@ public class ExecutionRequestDto {
      * @param stdin            The elements to be passed to the standard input.
      * @param compilerFlags    The compiler flags. Should be null if the {@link #language} is compiled.
      * @param timeout          The time given to execute, in milliseconds.
+     * @param mainFileName     The name of the file in which the "main" will be placed
+     *                         (i.e the name of the file where the code will be copied).
      * @param language         The programming language in which the {@code code} is written.
      * @throws IllegalArgumentException If any argument is not valid.
      */
