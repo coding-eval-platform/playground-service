@@ -46,6 +46,12 @@ spring:
           json:
             add.type.headers: false
 
+  sleuth:
+    sampler:
+      probability: 1
+  zipkin:
+    sender:
+      type: web
 
 server:
   port: 8001
